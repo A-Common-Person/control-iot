@@ -19,3 +19,8 @@ export function findCommand(name) {
   const wanted = String(name).trim().toLowerCase();
   return state.commands.find((c) => c.nombre.trim().toLowerCase() === wanted) ?? null;
 }
+
+// La DEMO la ejecuta el backend; este indicador evita comandos incompatibles mientras corre.
+let demoRunning = false;
+export const isDemoRunning = () => demoRunning;
+export const setDemoRunning = (value) => { demoRunning = Boolean(value); };

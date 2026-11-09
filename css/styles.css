@@ -125,3 +125,9 @@ body {
 .action-bar[data-level="error"] { border-left-color: #ff6b5e; }
 
 .action-stack { display: grid; gap: .4rem; align-content: start; }
+
+/* Joysticks: dirección activa y estados de los botones */
+.joystick:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+.joystick .dir.is-active { color: var(--stop); filter: drop-shadow(0 0 3px rgba(198, 40, 40, .5)); }
+.btn-aux.is-sending { opacity: .6; }
+.btn-aux.is-error { border-color: var(--bad); color: var(--bad); }

@@ -58,6 +58,11 @@ const WS_VIEW = {
 export function renderWsState(state) {
   const [level, text] = WS_VIEW[state] ?? WS_VIEW.disconnected;
   setIndicator('ind-ws', level, text);
+  if (state === 'disconnected') {
+    const bar = $('event-bar');
+    bar.textContent = 'WebSocket desconectado. Si usas un bloqueador de anuncios (por ejemplo Brave Shields), desactívalo para este sitio y recarga.';
+    bar.dataset.level = 'error';
+  }
 }
 
 const API_VIEW = { ok: ['ok', 'Disponible'], checking: ['wait', 'Comprobando…'], down: ['bad', 'No disponible'] };
@@ -91,4 +96,11 @@ export function showWsEvent(msg) {
   const bar = $('event-bar');
   bar.textContent = `Evento WebSocket: ${parts.join(' · ')}${time}`;
   bar.dataset.level = 'ok';
+}
+
+// Estado visible de un botón: enviando / error (el estado "presionado" lo da :active).
+export function setButtonState(btn, state) {
+  btn.classList.toggle('is-sending', state === 'sending');
+  btn.classList.toggle('is-error', state === 'error');
+  btn.setAttribute('aria-busy', state === 'sending' ? 'true' : 'false');
 }

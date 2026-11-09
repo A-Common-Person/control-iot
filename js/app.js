@@ -1,11 +1,16 @@
 import { CONFIG } from './config.js';
 import { getVehicle } from './api.js';
 import { setVehicle, getDemos, findCommand } from './state.js';
-import { sendCommand } from './commands.js';
+import { beginHold, endHold, requestStop, requestToggle } from './commands.js';
+import { createJoystick } from './joystick.js';
 import { startWebSocket } from './websocket.js';
 import { startHealthMonitor } from './health.js';
 import { friendlyMessage } from './errors.js';
 import * as ui from './ui.js';
+
+// Dirección del joystick -> nombre de comando del catálogo real de la API.
+const MOVE_MAP = { up: 'Avanzar', down: 'RETROCEDER', left: 'GIRAR_A_IZQUIERDA', right: 'GIRAR_A_DERECHA' };
+const TOOL_MAP = { up: 'SUBIR_BRAZO', down: 'BAJAR_BRAZO', left: 'DIAGONAL_IZQUIERDA', right: 'DIAGONAL_DERECHA' };
 
 async function loadVehicle() {
   try {
@@ -21,13 +26,38 @@ async function loadVehicle() {
   }
 }
 
-document.getElementById('btn-stop').addEventListener('click', async () => {
-  try {
-    await sendCommand('DETENER');
-  } catch (err) {
-    ui.setAction(friendlyMessage(err), 'error');
-  }
-});
+function bindJoystick(elementId, source, map) {
+  createJoystick(document.getElementById(elementId), {
+    onChange(direction) {
+      if (direction === null) return endHold(source);
+      if (!findCommand(map[direction])) {
+        ui.setAction(`El comando «${map[direction]}» no está en el catálogo.`, 'error');
+        return;
+      }
+      beginHold(source, map[direction]);
+    },
+  });
+}
+
+function bindAuxButtons() {
+  document.querySelectorAll('[data-action]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      ui.setButtonState(btn, 'sending');
+      btn.disabled = true;
+      const ok = await requestToggle(btn.dataset.action);
+      btn.disabled = false;
+      ui.setButtonState(btn, ok ? 'idle' : 'error');
+      if (!ok) setTimeout(() => ui.setButtonState(btn, 'idle'), 2000);
+    });
+  });
+}
+
+bindJoystick('joystick-move', 'move', MOVE_MAP);
+bindJoystick('joystick-tool', 'tool', TOOL_MAP);
+bindAuxButtons();
+
+document.getElementById('btn-stop').addEventListener('click', () => requestStop());
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') requestStop(); });
 
 startWebSocket({ vehicleId: CONFIG.VEHICLE_ID, onState: ui.renderWsState, onEvent: ui.showWsEvent });
 startHealthMonitor({ onResult: ui.renderHealth });
