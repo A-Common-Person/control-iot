@@ -123,3 +123,5 @@ body {
 .action-bar { border-left: 6px solid #5b6b8c; }
 .action-bar[data-level="ok"] { border-left-color: #2fb36b; }
 .action-bar[data-level="error"] { border-left-color: #ff6b5e; }
+
+.action-stack { display: grid; gap: .4rem; align-content: start; }

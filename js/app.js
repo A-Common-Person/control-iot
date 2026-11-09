@@ -2,6 +2,8 @@ import { CONFIG } from './config.js';
 import { getVehicle } from './api.js';
 import { setVehicle, getDemos, findCommand } from './state.js';
 import { sendCommand } from './commands.js';
+import { startWebSocket } from './websocket.js';
+import { startHealthMonitor } from './health.js';
 import { friendlyMessage } from './errors.js';
 import * as ui from './ui.js';
 
@@ -27,4 +29,6 @@ document.getElementById('btn-stop').addEventListener('click', async () => {
   }
 });
 
+startWebSocket({ vehicleId: CONFIG.VEHICLE_ID, onState: ui.renderWsState, onEvent: ui.showWsEvent });
+startHealthMonitor({ onResult: ui.renderHealth });
 loadVehicle();

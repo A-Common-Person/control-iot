@@ -25,16 +25,16 @@
   <main class="container-fluid px-3 py-2">
     <section aria-labelledby="h-conexion" class="mb-2">
       <h2 id="h-conexion" class="visually-hidden">Estado de conexión</h2>
-      <ul class="status-panel">
-        <li class="status-item" id="ind-ws" data-state="wait">
+      <ul class="status-panel" aria-live="polite">
+        <li class="status-item" id="ind-ws" data-state="wait" title="Conexión del navegador con el servidor WSS. No indica que el vehículo físico esté conectado.">
           <i class="bi bi-hourglass-split fs-5" aria-hidden="true"></i>
           <div><div class="label">WebSocket WSS</div><div class="value">Conectando…</div></div>
         </li>
-        <li class="status-item" id="ind-api" data-state="wait">
+        <li class="status-item" id="ind-api" data-state="wait" title="Resultado de la comprobación de salud. No confirma que los 21 servicios funcionen.">
           <i class="bi bi-hourglass-split fs-5" aria-hidden="true"></i>
           <div><div class="label">API AWS · 21 servicios</div><div class="value">Comprobando…</div></div>
         </li>
-        <li class="status-item" id="ind-rds" data-state="none">
+        <li class="status-item" id="ind-rds" data-state="none" title="Solo según el diagnóstico seguro del backend; si no hay verificación, se muestra Sin verificar.">
           <i class="bi bi-question-circle fs-5" aria-hidden="true"></i>
           <div><div class="label">Base de datos · Amazon RDS</div><div class="value">Sin verificar</div></div>
         </li>
@@ -90,7 +90,10 @@
           <button type="button" class="btn btn-outline-secondary btn-control" id="btn-demo-cancel" disabled><i class="bi bi-x-lg" aria-hidden="true"></i> Cancelar</button>
         </div>
       </section>
-      <div class="action-bar" id="action-bar" role="status" aria-live="polite">Listo. Aún no se ha enviado ninguna acción.</div>
+      <div class="action-stack">
+        <div class="action-bar" id="action-bar" role="status" aria-live="polite">Listo. Aún no se ha enviado ninguna acción.</div>
+        <div class="action-bar" id="event-bar" role="status" aria-live="off">Evento WebSocket: esperando…</div>
+      </div>
     </div>
   </main>
 
