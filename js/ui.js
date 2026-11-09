@@ -45,7 +45,7 @@ const ICONS = {
 function setIndicator(id, state, text) {
   const item = $(id);
   item.dataset.state = state;
-  item.querySelector('i').className = `bi ${ICONS[state]} fs-5`;
+  item.querySelector('i').className = `bi ${ICONS[state]}`;
   item.querySelector('.value').textContent = text;
 }
 
