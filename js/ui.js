@@ -104,3 +104,33 @@ export function setButtonState(btn, state) {
   btn.classList.toggle('is-error', state === 'error');
   btn.setAttribute('aria-busy', state === 'sending' ? 'true' : 'false');
 }
+
+// ---------- DEMO y clave de operador ----------
+let demoCatalog = false;
+const KEY_STORAGE = 'control-iot:operator-key';
+
+export function getSelectedDemo() { return $('demo-select').value; }
+export function getOperatorKey() { return $('operator-key').value.trim(); }
+
+// La clave se escribe en la página y solo se guarda en esta pestaña (sessionStorage).
+export function initOperatorKey() {
+  const input = $('operator-key');
+  try { input.value = sessionStorage.getItem(KEY_STORAGE) ?? ''; } catch { /* sin almacenamiento */ }
+  input.addEventListener('input', () => {
+    try { sessionStorage.setItem(KEY_STORAGE, input.value.trim()); } catch { /* sin almacenamiento */ }
+  });
+}
+
+export function setDemoStatus(text, level = 'info') {
+  const box = $('demo-status');
+  box.textContent = text;
+  box.dataset.level = level;
+}
+
+export function updateDemoControls(running) {
+  const select = $('demo-select');
+  demoCatalog = select.options.length > 1;
+  select.disabled = running || !demoCatalog;
+  $('btn-demo-start').disabled = running || !demoCatalog || select.value === '';
+  $('btn-demo-cancel').disabled = !demoCatalog; // cancelar nunca se bloquea por una DEMO en marcha
+}

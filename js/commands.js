@@ -22,6 +22,46 @@ function markIdle() {
 }
 const waitIdle = () => (busy ? new Promise((r) => idleWaiters.push(r)) : Promise.resolve());
 
+// Eventos "movimiento" recibidos por WebSocket (el evento puede llegar antes que la respuesta HTTP).
+const seenEvents = [];
+let awaiting = null; // { name, mine, timer }
+const EVENT_WAIT_MS = 4000;
+const clean = (v) => String(v).slice(0, 40);
+
+export function onMovementEvent(msg) {
+  if (msg.evento !== 'movimiento' || typeof msg.comando !== 'string') return;
+  const name = msg.comando.toLowerCase();
+  const now = Date.now();
+  seenEvents.push({ name, at: now });
+  while (seenEvents.length && now - seenEvents[0].at > 10000) seenEvents.shift();
+  if (awaiting && awaiting.name === name) {
+    clearTimeout(awaiting.timer);
+    if (awaiting.mine === seq) ui.setAction(`Aceptado por la API y evento recibido: ${clean(msg.comando)}.`, 'ok');
+    awaiting = null;
+  }
+}
+
+function watchForEvent(name, mine, startedAt) {
+  clearTimeout(awaiting?.timer);
+  awaiting = null;
+  const lower = name.toLowerCase();
+  if (seenEvents.some((e) => e.name === lower && e.at >= startedAt - 50)) {
+    ui.setAction(`Aceptado por la API y evento recibido: ${clean(name)}.`, 'ok');
+    return;
+  }
+  ui.setAction(`Aceptado por la API: ${clean(name)}. Esperando el evento WebSocket…`, 'ok');
+  awaiting = {
+    name: lower,
+    mine,
+    timer: setTimeout(() => {
+      if (awaiting && awaiting.mine === seq) {
+        ui.setAction(`Aceptado por la API: ${clean(name)}, pero no llegó su evento por WebSocket.`, 'error');
+      }
+      awaiting = null;
+    }, EVENT_WAIT_MS),
+  };
+}
+
 async function post(name, mine) {
   const vehicle = getVehicleInfo();
   const command = findCommand(name);
@@ -29,8 +69,9 @@ async function post(name, mine) {
     throw new ApiError(`El comando «${name}» no está disponible.`, { kind: 'app' });
   }
   if (mine === seq) ui.setAction(`Solicitado: ${command.nombre}…`);
+  const startedAt = Date.now();
   const result = await sendMovement(vehicle.id, command.id_comando);
-  if (mine === seq) ui.setAction(`Aceptado por la API: ${result.comando}. Falta el evento WebSocket.`, 'ok');
+  if (mine === seq) watchForEvent(result.comando, mine, startedAt);
   return result;
 }
 

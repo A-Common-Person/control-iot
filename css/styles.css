@@ -131,3 +131,10 @@ body {
 .joystick .dir.is-active { color: var(--stop); filter: drop-shadow(0 0 3px rgba(198, 40, 40, .5)); }
 .btn-aux.is-sending { opacity: .6; }
 .btn-aux.is-error { border-color: var(--bad); color: var(--bad); }
+
+/* DEMO: clave de operador y estado */
+.operator-row { display: flex; align-items: center; gap: .5rem; margin-top: .6rem; }
+.operator-row .form-control { max-width: 14rem; min-height: 38px; }
+.demo-status { margin-top: .6rem; font-size: .9rem; border-left: 6px solid #8a94a8; padding: .35rem .6rem; background: #f1f3f7; border-radius: 6px; }
+.demo-status[data-level="ok"] { border-left-color: var(--ok); }
+.demo-status[data-level="error"] { border-left-color: var(--bad); }

@@ -89,6 +89,12 @@
           <button type="button" class="btn btn-success btn-control" id="btn-demo-start" disabled><i class="bi bi-play-fill" aria-hidden="true"></i> Ejecutar</button>
           <button type="button" class="btn btn-outline-secondary btn-control" id="btn-demo-cancel" disabled><i class="bi bi-x-lg" aria-hidden="true"></i> Cancelar</button>
         </div>
+        <div class="operator-row">
+          <label for="operator-key" class="form-label mb-0">Clave de operador</label>
+          <input id="operator-key" type="password" class="form-control form-control-sm" autocomplete="off" spellcheck="false" aria-describedby="operator-help">
+        </div>
+        <div id="operator-help" class="form-text">Necesaria para ejecutar y cancelar DEMO. Se guarda solo en esta pestaña; no se sube a GitHub.</div>
+        <div class="demo-status" id="demo-status" role="status" aria-live="polite" data-level="info">Sin DEMO en ejecución.</div>
       </section>
       <div class="action-stack">
         <div class="action-bar" id="action-bar" role="status" aria-live="polite">Listo. Aún no se ha enviado ninguna acción.</div>

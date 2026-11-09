@@ -1,7 +1,8 @@
 import { CONFIG } from './config.js';
 import { getVehicle } from './api.js';
-import { setVehicle, getDemos, findCommand } from './state.js';
-import { beginHold, endHold, requestStop, requestToggle } from './commands.js';
+import { setVehicle, getDemos, findCommand, isDemoRunning } from './state.js';
+import { beginHold, endHold, requestStop, requestToggle, onMovementEvent } from './commands.js';
+import { startSelectedDemo, cancelRunningDemo, onDemoEvent } from './demo.js';
 import { createJoystick } from './joystick.js';
 import { startWebSocket } from './websocket.js';
 import { startHealthMonitor } from './health.js';
@@ -18,6 +19,7 @@ async function loadVehicle() {
     setVehicle(data);
     ui.setVehicleName(`${data.nombre} · ID ${data.id_vehiculo}`);
     ui.renderDemos(getDemos());
+    ui.updateDemoControls(isDemoRunning());
     ui.markAvailableCommands(findCommand);
     ui.setAction('Catálogo cargado desde la API.', 'ok');
   } catch (err) {
@@ -52,13 +54,30 @@ function bindAuxButtons() {
   });
 }
 
+// DETENER: siempre envía el comando y, si hay una DEMO en marcha, también la cancela.
+function emergencyStop() {
+  const demoWasRunning = isDemoRunning();
+  requestStop();
+  if (demoWasRunning) cancelRunningDemo();
+}
+
+function handleWsEvent(msg) {
+  ui.showWsEvent(msg);
+  onMovementEvent(msg);
+  onDemoEvent(msg);
+}
+
 bindJoystick('joystick-move', 'move', MOVE_MAP);
 bindJoystick('joystick-tool', 'tool', TOOL_MAP);
 bindAuxButtons();
+ui.initOperatorKey();
 
-document.getElementById('btn-stop').addEventListener('click', () => requestStop());
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') requestStop(); });
+document.getElementById('btn-stop').addEventListener('click', emergencyStop);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') emergencyStop(); });
+document.getElementById('demo-select').addEventListener('change', () => ui.updateDemoControls(isDemoRunning()));
+document.getElementById('btn-demo-start').addEventListener('click', startSelectedDemo);
+document.getElementById('btn-demo-cancel').addEventListener('click', cancelRunningDemo);
 
-startWebSocket({ vehicleId: CONFIG.VEHICLE_ID, onState: ui.renderWsState, onEvent: ui.showWsEvent });
+startWebSocket({ vehicleId: CONFIG.VEHICLE_ID, onState: ui.renderWsState, onEvent: handleWsEvent });
 startHealthMonitor({ onResult: ui.renderHealth });
 loadVehicle();
