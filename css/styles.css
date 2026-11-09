@@ -235,3 +235,8 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* Táctil: sin zoom por doble toque, sin menú de pulsación larga ni resaltado en los controles */
+button, .btn, select, .joystick { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.joystick { touch-action: none; }
+.btn, .joystick, .stick-caption { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
