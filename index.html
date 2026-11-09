@@ -16,16 +16,14 @@
 </head>
 <body>
   <header class="app-header">
-    <div class="container py-3 d-flex align-items-center justify-content-between">
-      <div>
-        <div class="brand"><i class="bi bi-joystick" aria-hidden="true"></i> Control IoT</div>
-        <div class="vehicle" id="vehicle-name">Cargando vehículo…</div>
-      </div>
+    <div class="container-fluid px-3 py-2 d-flex align-items-center justify-content-between">
+      <div class="brand"><i class="bi bi-joystick" aria-hidden="true"></i> Control IoT</div>
+      <div class="vehicle" id="vehicle-name">Cargando vehículo…</div>
     </div>
   </header>
 
-  <main class="container py-3">
-    <section aria-labelledby="h-conexion" class="mb-3">
+  <main class="container-fluid px-3 py-2">
+    <section aria-labelledby="h-conexion" class="mb-2">
       <h2 id="h-conexion" class="visually-hidden">Estado de conexión</h2>
       <ul class="status-panel">
         <li class="status-item" id="ind-ws" data-state="wait">
@@ -43,45 +41,56 @@
       </ul>
     </section>
 
-    <div class="row g-3">
-      <section class="col-12 col-lg-6" aria-labelledby="h-mov">
-        <div class="panel">
-          <h2 id="h-mov">Movimiento</h2>
-          <div class="joystick-wrap mb-3">
-            <div class="joystick" id="joystick" role="application" aria-label="Joystick de control">
-              <i class="bi bi-caret-up-fill dir up" aria-hidden="true"></i>
-              <i class="bi bi-caret-down-fill dir down" aria-hidden="true"></i>
-              <i class="bi bi-caret-left-fill dir left" aria-hidden="true"></i>
-              <i class="bi bi-caret-right-fill dir right" aria-hidden="true"></i>
-              <div class="knob" id="joystick-knob"></div>
-            </div>
-          </div>
-          <button type="button" class="btn btn-stop" id="btn-stop"><i class="bi bi-stop-circle-fill" aria-hidden="true"></i> DETENER</button>
+    <!-- Zona de control: joystick izquierdo | botones centrales | joystick derecho -->
+    <section class="controls-row" aria-labelledby="h-ctrl">
+      <h2 id="h-ctrl" class="visually-hidden">Controles del vehículo</h2>
+
+      <div class="stick-block stick-left">
+        <div class="joystick" id="joystick-move" role="application" aria-label="Joystick de avance y giro">
+          <i class="bi bi-caret-up-fill dir up" aria-hidden="true"></i>
+          <i class="bi bi-caret-down-fill dir down" aria-hidden="true"></i>
+          <i class="bi bi-caret-left-fill dir left" aria-hidden="true"></i>
+          <i class="bi bi-caret-right-fill dir right" aria-hidden="true"></i>
+          <div class="knob"></div>
         </div>
-      </section>
+        <div class="stick-caption">Avance y giro</div>
+      </div>
 
-      <div class="col-12 col-lg-6 d-grid gap-3 align-content-start">
-        <section class="panel" aria-labelledby="h-ctrl">
-          <h2 id="h-ctrl">Controles adicionales</h2>
-          <div id="extra-controls" class="row g-2">
-            <p class="text-secondary mb-0">Los controles se cargan desde el catálogo de la API.</p>
-          </div>
-        </section>
+      <div class="center-block">
+        <button type="button" class="btn btn-stop" id="btn-stop"><i class="bi bi-stop-circle-fill" aria-hidden="true"></i> DETENER</button>
+        <div class="aux-grid" id="aux-controls">
+          <button type="button" class="btn btn-outline-dark btn-aux" data-action="luz"><i class="bi bi-lightbulb" aria-hidden="true"></i><span>Luz</span></button>
+          <button type="button" class="btn btn-outline-dark btn-aux" data-action="sonido"><i class="bi bi-volume-up" aria-hidden="true"></i><span>Sonido</span></button>
+          <button type="button" class="btn btn-outline-dark btn-aux" data-action="velocidad"><i class="bi bi-speedometer2" aria-hidden="true"></i><span>Velocidad</span></button>
+          <button type="button" class="btn btn-outline-dark btn-aux" data-action="demo"><i class="bi bi-play-btn" aria-hidden="true"></i><span>Demo carrito</span></button>
+        </div>
+      </div>
 
-        <section class="panel" aria-labelledby="h-demo">
-          <h2 id="h-demo">Secuencia DEMO</h2>
-          <label for="demo-select" class="form-label visually-hidden">Seleccionar DEMO</label>
-          <select id="demo-select" class="form-select btn-control mb-2" disabled>
+      <div class="stick-block stick-right">
+        <div class="joystick" id="joystick-tool" role="application" aria-label="Joystick de brazo y orugas">
+          <i class="bi bi-arrow-bar-up dir up" aria-hidden="true"></i>
+          <i class="bi bi-arrow-bar-down dir down" aria-hidden="true"></i>
+          <i class="bi bi-arrow-counterclockwise dir left" aria-hidden="true"></i>
+          <i class="bi bi-arrow-clockwise dir right" aria-hidden="true"></i>
+          <div class="knob"></div>
+        </div>
+        <div class="stick-caption">Brazo y orugas</div>
+      </div>
+    </section>
+
+    <div class="bottom-row mt-2">
+      <section class="panel" aria-labelledby="h-demo">
+        <h2 id="h-demo">Secuencia DEMO</h2>
+        <label for="demo-select" class="visually-hidden">Seleccionar DEMO</label>
+        <div class="demo-controls">
+          <select id="demo-select" class="form-select btn-control" disabled>
             <option>Cargando DEMO…</option>
           </select>
-          <div class="d-flex gap-2">
-            <button type="button" class="btn btn-success btn-control flex-fill" id="btn-demo-start" disabled><i class="bi bi-play-fill" aria-hidden="true"></i> Ejecutar</button>
-            <button type="button" class="btn btn-outline-secondary btn-control flex-fill" id="btn-demo-cancel" disabled><i class="bi bi-x-lg" aria-hidden="true"></i> Cancelar</button>
-          </div>
-        </section>
-
-        <div class="action-bar" id="action-bar" role="status" aria-live="polite">Listo. Aún no se ha enviado ninguna acción.</div>
-      </div>
+          <button type="button" class="btn btn-success btn-control" id="btn-demo-start" disabled><i class="bi bi-play-fill" aria-hidden="true"></i> Ejecutar</button>
+          <button type="button" class="btn btn-outline-secondary btn-control" id="btn-demo-cancel" disabled><i class="bi bi-x-lg" aria-hidden="true"></i> Cancelar</button>
+        </div>
+      </section>
+      <div class="action-bar" id="action-bar" role="status" aria-live="polite">Listo. Aún no se ha enviado ninguna acción.</div>
     </div>
   </main>
 

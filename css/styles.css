@@ -47,23 +47,61 @@ body {
 .panel { background: #fff; border: 1px solid #d5dbe6; border-radius: var(--radius); padding: 1rem; }
 .panel h2 { font-size: 1rem; font-weight: 700; margin: 0 0 .75rem; }
 
-/* Joystick (apariencia; la lógica llega en la Fase 4) */
-.joystick-wrap { display: flex; justify-content: center; }
+/* Zona de control: joystick izquierdo | centro | joystick derecho (siempre en horizontal) */
+.controls-row {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  gap: .75rem; background: #fff; border: 1px solid #d5dbe6; border-radius: var(--radius);
+  padding: .75rem;
+}
+.stick-block { display: flex; flex-direction: column; align-items: center; gap: .35rem; }
+.stick-caption { font-size: .8rem; font-weight: 600; color: var(--muted); }
+
 .joystick {
-  position: relative; width: min(72vw, 260px); aspect-ratio: 1;
+  --size: clamp(120px, min(28vw, 46vh), 260px);
+  position: relative; width: var(--size); height: var(--size);
   border-radius: 50%; background: radial-gradient(circle at 50% 40%, #dfe5f0, #b9c3d6);
-  border: 6px solid var(--ink); touch-action: none; user-select: none;
+  border: 5px solid var(--ink); touch-action: none; user-select: none;
 }
 .joystick .knob {
   position: absolute; top: 50%; left: 50%; width: 34%; aspect-ratio: 1;
   transform: translate(-50%, -50%); border-radius: 50%;
   background: var(--accent); border: 4px solid var(--ink);
 }
-.joystick .dir { position: absolute; color: var(--ink); font-size: 1.4rem; line-height: 1; }
+.joystick .dir { position: absolute; color: var(--ink); font-size: clamp(1rem, 3.2vw, 1.5rem); line-height: 1; }
 .joystick .dir.up { top: 6%; left: 50%; transform: translateX(-50%); }
 .joystick .dir.down { bottom: 6%; left: 50%; transform: translateX(-50%); }
 .joystick .dir.left { left: 6%; top: 50%; transform: translateY(-50%); }
 .joystick .dir.right { right: 6%; top: 50%; transform: translateY(-50%); }
+
+.center-block { display: flex; flex-direction: column; gap: .6rem; width: clamp(150px, 26vw, 260px); }
+.aux-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.btn-aux {
+  min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .1rem; font-weight: 600; font-size: .85rem; line-height: 1.1; padding: .35rem;
+}
+.btn-aux i { font-size: 1.25rem; }
+
+.bottom-row { display: grid; gap: .5rem; grid-template-columns: 1fr; }
+@media (min-width: 768px) { .bottom-row { grid-template-columns: 1.4fr 1fr; align-items: stretch; } }
+.demo-controls { display: grid; grid-template-columns: 1fr auto auto; gap: .5rem; }
+
+/* Celular en vertical: los dos joysticks siguen lado a lado; los botones centrales pasan debajo */
+@media (max-width: 575px) and (orientation: portrait) {
+  .controls-row { grid-template-columns: 1fr 1fr; }
+  .center-block { grid-column: 1 / -1; grid-row: 2; width: 100%; }
+  .aux-grid { grid-template-columns: repeat(4, 1fr); }
+  .joystick { --size: clamp(120px, 40vw, 220px); }
+}
+
+/* Celular en horizontal: compactar para que todo quepa sin desplazarse */
+@media (max-height: 480px) and (orientation: landscape) {
+  .app-header .brand, .app-header .vehicle { font-size: .9rem; }
+  .status-item { min-height: 38px; padding: .3rem .6rem; }
+  .status-item .label { font-size: .8rem; }
+  .status-item .value { font-size: .75rem; }
+  .controls-row { padding: .5rem; }
+  .btn-aux { min-height: 48px; }
+}
 
 .btn-control { min-height: var(--tap); min-width: var(--tap); font-weight: 600; }
 .btn-stop {
