@@ -1,0 +1,21 @@
+// Estado de la aplicación (datos del vehículo). Sin acceso al DOM ni a la red.
+const state = {
+  vehicle: null,
+  commands: [],
+  demos: [],
+};
+
+export function setVehicle(data) {
+  state.vehicle = { id: data.id_vehiculo, nombre: data.nombre };
+  state.commands = data.comandos.filter((c) => c.activo);
+  state.demos = data.demos.filter((d) => d.activo);
+}
+
+export const getVehicleInfo = () => state.vehicle;
+export const getDemos = () => state.demos;
+
+// Los comandos se buscan por nombre en el catálogo real; no se codifican IDs.
+export function findCommand(name) {
+  const wanted = String(name).trim().toLowerCase();
+  return state.commands.find((c) => c.nombre.trim().toLowerCase() === wanted) ?? null;
+}
