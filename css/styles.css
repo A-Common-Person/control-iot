@@ -1,0 +1,82 @@
+:root {
+  --ink: #14213d;
+  --ink-deep: #0b1426;
+  --paper: #f6f7f9;
+  --text: #1b2433;
+  --muted: #566074;
+  --accent: #f2b705;
+  --stop: #c62828;
+  --ok: #1b7f45;
+  --warn: #9a6700;
+  --bad: #b3261e;
+  --radius: 14px;
+  --tap: 48px;
+}
+
+body {
+  font-family: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--paper);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.app-header { background: var(--ink); color: #fff; }
+.app-header .brand { font-weight: 700; font-size: 1.15rem; letter-spacing: .01em; }
+.app-header .vehicle { color: #c9d2e3; font-size: .95rem; }
+
+/* Indicadores de conexión: icono + texto, nunca solo color */
+.status-panel { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; grid-template-columns: 1fr; }
+.status-item {
+  display: flex; align-items: center; gap: .6rem;
+  background: #fff; border: 1px solid #d5dbe6; border-left-width: 6px;
+  border-radius: 10px; padding: .55rem .75rem; min-height: 44px;
+}
+.status-item .label { font-weight: 600; font-size: .9rem; line-height: 1.15; }
+.status-item .value { font-size: .85rem; color: var(--muted); }
+.status-item[data-state="ok"]   { border-left-color: var(--ok); }
+.status-item[data-state="wait"] { border-left-color: var(--warn); }
+.status-item[data-state="bad"]  { border-left-color: var(--bad); }
+.status-item[data-state="none"] { border-left-color: #8a94a8; }
+
+@media (min-width: 576px) { .status-panel { grid-template-columns: repeat(3, 1fr); } }
+
+.panel { background: #fff; border: 1px solid #d5dbe6; border-radius: var(--radius); padding: 1rem; }
+.panel h2 { font-size: 1rem; font-weight: 700; margin: 0 0 .75rem; }
+
+/* Joystick (apariencia; la lógica llega en la Fase 4) */
+.joystick-wrap { display: flex; justify-content: center; }
+.joystick {
+  position: relative; width: min(72vw, 260px); aspect-ratio: 1;
+  border-radius: 50%; background: radial-gradient(circle at 50% 40%, #dfe5f0, #b9c3d6);
+  border: 6px solid var(--ink); touch-action: none; user-select: none;
+}
+.joystick .knob {
+  position: absolute; top: 50%; left: 50%; width: 34%; aspect-ratio: 1;
+  transform: translate(-50%, -50%); border-radius: 50%;
+  background: var(--accent); border: 4px solid var(--ink);
+}
+.joystick .dir { position: absolute; color: var(--ink); font-size: 1.4rem; line-height: 1; }
+.joystick .dir.up { top: 6%; left: 50%; transform: translateX(-50%); }
+.joystick .dir.down { bottom: 6%; left: 50%; transform: translateX(-50%); }
+.joystick .dir.left { left: 6%; top: 50%; transform: translateY(-50%); }
+.joystick .dir.right { right: 6%; top: 50%; transform: translateY(-50%); }
+
+.btn-control { min-height: var(--tap); min-width: var(--tap); font-weight: 600; }
+.btn-stop {
+  background: var(--stop); border-color: var(--stop); color: #fff;
+  min-height: 56px; font-size: 1.1rem; font-weight: 700; width: 100%;
+}
+.btn-stop:hover, .btn-stop:focus { background: #a31f1f; border-color: #a31f1f; color: #fff; }
+
+.action-bar {
+  background: var(--ink-deep); color: #e6ebf5; border-radius: 10px;
+  padding: .6rem .85rem; font-size: .9rem; min-height: 44px;
+}
+
+.app-footer { margin-top: auto; background: var(--ink); color: #c9d2e3; font-size: .8rem; text-align: center; padding: .9rem 1rem; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
