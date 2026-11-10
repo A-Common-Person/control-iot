@@ -1,3 +1,5 @@
+import { CONFIG } from './config.js';
+
 // Todo lo que toca el DOM. Los datos remotos se insertan solo con textContent.
 const $ = (id) => document.getElementById(id);
 
@@ -115,7 +117,9 @@ export function getOperatorKey() { return $('operator-key').value.trim(); }
 // La clave se escribe en la página y solo se guarda en esta pestaña (sessionStorage).
 export function initOperatorKey() {
   const input = $('operator-key');
-  try { input.value = sessionStorage.getItem(KEY_STORAGE) ?? ''; } catch { /* sin almacenamiento */ }
+  let saved = null;
+  try { saved = sessionStorage.getItem(KEY_STORAGE); } catch { /* sin almacenamiento */ }
+  input.value = saved ?? CONFIG.OPERATOR_KEY ?? '';
   input.addEventListener('input', () => {
     try { sessionStorage.setItem(KEY_STORAGE, input.value.trim()); } catch { /* sin almacenamiento */ }
   });

@@ -196,42 +196,89 @@ body {
 .app-footer { margin-top: auto; background: #0e1114; border-top: 1px solid var(--line); }
 .app-footer p { margin: 0; padding: .8rem 1rem calc(.8rem + env(safe-area-inset-bottom, 0px)); text-align: center; color: var(--muted); font-size: .78rem; }
 
-/* ===== Celular en vertical: dos joysticks lado a lado y botones debajo ===== */
-@media (max-width: 575px) and (orientation: portrait) {
-  .status-panel { grid-template-columns: repeat(3, 1fr); gap: .35rem; }
-  .status-item { padding: .35rem .45rem; gap: .35rem; min-height: 52px; }
+/* ===== Modo compacto de celular: toda la interfaz cabe en una pantalla, sin desplazarse =====
+   Vertical (ancho <= 575px) u horizontal (alto <= 480px). Si una pantalla es aún más baja,
+   solo el área central de controles se desplaza (respaldo); encabezado y pie quedan fijos. */
+:root { --vh: 1vh; }
+@supports (height: 100dvh) { :root { --vh: 1dvh; } }
+
+@media (max-width: 575px) and (orientation: portrait), (max-height: 480px) and (orientation: landscape) {
+  html { height: 100%; }
+  body { height: calc(100 * var(--vh)); overflow: hidden; }
+  .app-header, .app-footer { flex: none; }
+  .shell { padding-left: max(.6rem, env(safe-area-inset-left, 0px)); padding-right: max(.6rem, env(safe-area-inset-right, 0px)); }
+  .hazard { height: 4px; }
+
+  /* Encabezado */
+  .header-inner { padding-top: .3rem; padding-bottom: .3rem; gap: .3rem .6rem; }
+  .brand img { width: 28px; height: 28px; }
+  .brand-text { font-size: 1.15rem; }
+  .vehicle { font-size: .78rem; padding: .15rem .55rem; }
+  .status-panel { grid-template-columns: repeat(3, 1fr); gap: .3rem; }
+  .status-item { min-height: 40px; padding: .25rem .4rem; gap: .35rem; }
   .status-item i { font-size: 1rem; }
-  .status-item .label { font-size: .6rem; letter-spacing: .03em; }
-  .status-item .value { font-size: .85rem; letter-spacing: 0; }
-  .brand-text { font-size: 1.25rem; }
-  .vehicle { font-size: .85rem; padding: .25rem .6rem; }
-  .console { grid-template-columns: 1fr 1fr; }
-  .center-block { grid-column: 1 / -1; grid-row: 2; width: 100%; }
-  .aux-grid { grid-template-columns: repeat(4, 1fr); }
-  .joystick { --size: clamp(120px, 40vw, 220px); }
-  .demo-controls { grid-template-columns: 1fr 1fr; }
-  .demo-controls .form-select { grid-column: 1 / -1; }
-  .operator-row { flex-wrap: wrap; }
+  .status-item .label { font-size: .55rem; letter-spacing: .02em; }
+  .status-item .value { font-size: .82rem; letter-spacing: 0; }
+
+  /* Área central */
+  .layout { flex: 1 1 auto; min-height: 0; overflow-y: auto; align-content: start; padding-top: .4rem; padding-bottom: .4rem; gap: .4rem; }
+  .console { padding: .4rem; gap: .4rem; }
+  .stick-block { gap: .25rem; }
+  .stick-caption { font-size: .72rem; letter-spacing: .1em; }
+  .joystick { border-width: 3px; }
+  .center-block { gap: .4rem; }
+  .btn.btn-stop { min-height: 46px; font-size: 1.1rem; letter-spacing: .08em; border-width: 2px; box-shadow: 0 3px 0 #7a1710; }
+  .aux-grid { gap: .35rem; }
+  .btn.btn-aux { min-height: 46px; font-size: .72rem; letter-spacing: .03em; box-shadow: 0 2px 0 #101316; }
+  .btn.btn-aux i { font-size: 1.05rem; }
+  .label-long { display: none; }
+
+  /* Panel DEMO y mensajes */
+  .side { gap: .4rem; }
+  .panel { padding: .5rem; }
+  .panel h2 { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  .demo-controls { gap: .4rem; }
+  /* 16 px mínimo en campos: evita el zoom automático de iOS al enfocarlos */
+  .form-select, .form-control { font-size: 1rem; min-height: 38px; padding-top: .2rem; padding-bottom: .2rem; }
+  .btn.btn-run, .btn.btn-cancel { min-height: 38px; padding: 0 .65rem; font-size: .95rem; }
+  .btn-cancel .btn-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .operator-row { margin-top: .4rem; }
+  .operator-row label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .operator-row .form-control { max-width: none; flex: 1; min-height: 36px; }
+  .form-text { display: none; }
+  .demo-status { margin-top: .4rem; padding: .25rem .5rem; font-size: .76rem; line-height: 1.25; min-height: 30px;
+    display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .action-stack { gap: .3rem; }
+  .action-bar { min-height: 34px; padding: .3rem .5rem .3rem 3.3rem; font-size: .68rem; line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .action-bar::before { left: .4rem; top: .32rem; font-size: .55rem; padding: .02rem .3rem; }
+
+  /* Pie */
+  .app-footer p { padding: .3rem .6rem calc(.3rem + env(safe-area-inset-bottom, 0px)); font-size: .6rem; line-height: 1.2; }
 }
 
-/* ===== Celular en horizontal (poca altura): encabezado en una línea y consola compacta ===== */
+/* Vertical: dos joysticks arriba; DETENER y los 4 botones en una sola fila debajo */
+@media (max-width: 575px) and (orientation: portrait) {
+  .header-inner { grid-template-columns: 1fr auto; }
+  .console { grid-template-columns: 1fr 1fr; }
+  .joystick { --size: clamp(96px, min(calc(100 * var(--vh) - 450px), 42vw), 220px); }
+  .center-block { grid-column: 1 / -1; grid-row: 2; width: 100%; flex-direction: row; align-items: stretch; }
+  .btn.btn-stop { flex: 0 0 29%; width: auto; flex-direction: column; gap: 0; line-height: 1; font-size: 1rem; letter-spacing: .04em; }
+  .btn.btn-stop i { font-size: 1.2em; }
+  .aux-grid { flex: 1; grid-template-columns: repeat(4, 1fr); }
+  .side { grid-template-columns: 1fr; }
+}
+
+/* Horizontal: consola a la izquierda, DEMO y mensajes en una columna a la derecha */
 @media (max-height: 480px) and (orientation: landscape) {
-  .header-inner { grid-template-columns: auto auto 1fr; padding-top: .35rem; padding-bottom: .35rem; gap: .5rem .9rem; }
+  :root { --side-w: clamp(240px, 30vw, 300px); --center-w: clamp(120px, 20vw, 170px); }
+  .header-inner { grid-template-columns: auto auto 1fr; }
   .status-wrap { grid-column: auto; }
-  .status-panel { grid-template-columns: repeat(3, 1fr); gap: .35rem; }
-  .status-item { min-height: 38px; padding: .2rem .5rem; gap: .4rem; }
-  .status-item i { font-size: 1rem; }
-  .status-item .label { font-size: .58rem; letter-spacing: .03em; }
-  .status-item .value { font-size: .85rem; }
-  .brand img { width: 28px; height: 28px; }
-  .brand-text { font-size: 1.1rem; }
-  .vehicle { font-size: .8rem; padding: .15rem .6rem; }
-  .layout { padding-top: .5rem; gap: .5rem; }
-  .console { padding: .5rem; }
-  .joystick { --size: clamp(110px, 52vh, 200px); }
-  .stick-caption { font-size: .8rem; }
-  .btn.btn-aux { min-height: 48px; }
-  .btn.btn-stop { min-height: 54px; }
+  .layout { grid-template-columns: minmax(0, 1fr) var(--side-w); align-content: stretch; align-items: center; }
+  .console { grid-template-columns: 1fr var(--center-w) 1fr; }
+  .center-block { width: var(--center-w); }
+  .joystick { --size: clamp(92px, min(calc(100 * var(--vh) - 115px), calc((100vw - var(--side-w) - var(--center-w) - 70px) / 2)), 210px); }
+  .side { grid-template-columns: 1fr; align-content: center; }
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

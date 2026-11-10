@@ -75,7 +75,5 @@ Un evento WebSocket confirma que el backend lo publicó, no que los motores se m
 
 ## Seguridad
 
-- No hay claves ni credenciales en el repositorio.
-- La clave de operador (necesaria para iniciar y cancelar DEMO) se escribe en la página y solo se guarda en `sessionStorage` de la pestaña.
 - Los datos remotos se insertan en el DOM solo con `textContent`.
 - CORS en el backend limitado a los orígenes de la aplicación, a los métodos `GET` y `POST` y a las cabeceras `Content-Type` y `X-API-Key`.

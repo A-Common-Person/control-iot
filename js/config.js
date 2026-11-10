@@ -6,4 +6,7 @@ export const CONFIG = Object.freeze({
   HEALTH_PATH: '/health',
   HEALTH_INTERVAL_MS: 15000,
   REQUEST_TIMEOUT_MS: 8000,
+  // Clave de operador precargada por decisión del autor (práctica personal).
+  // Para quitarla: dejar la cadena vacía ('') y volver a escribirla en el campo.
+  OPERATOR_KEY: 'ITPgalletas8293',
 });
