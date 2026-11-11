@@ -8,5 +8,5 @@ export const CONFIG = Object.freeze({
   REQUEST_TIMEOUT_MS: 8000,
   // Clave de operador precargada por decisión del autor (práctica personal).
   // Para quitarla: dejar la cadena vacía ('') y volver a escribirla en el campo.
-  OPERATOR_KEY: '',
+  OPERATOR_KEY: 'ITPgalletas8293',
 });
