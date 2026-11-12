@@ -1,6 +1,7 @@
 import { sendMovement } from './api.js';
 import { findCommand, getVehicleInfo, isDemoRunning } from './state.js';
 import { ApiError, friendlyMessage } from './errors.js';
+import { prettyName } from './utils.js';
 import * as ui from './ui.js';
 
 // Única vía de envío de comandos: la usan los dos joysticks y los botones.
@@ -26,7 +27,7 @@ const waitIdle = () => (busy ? new Promise((r) => idleWaiters.push(r)) : Promise
 const seenEvents = [];
 let awaiting = null; // { name, mine, timer }
 const EVENT_WAIT_MS = 4000;
-const clean = (v) => String(v).slice(0, 40);
+const clean = (v) => prettyName(String(v).slice(0, 40));
 
 export function onMovementEvent(msg) {
   if (msg.evento !== 'movimiento' || typeof msg.comando !== 'string') return;
@@ -66,9 +67,9 @@ async function post(name, mine) {
   const vehicle = getVehicleInfo();
   const command = findCommand(name);
   if (!vehicle || !command) {
-    throw new ApiError(`El comando «${name}» no está disponible.`, { kind: 'app' });
+    throw new ApiError(`El comando «${prettyName(name)}» no está disponible.`, { kind: 'app' });
   }
-  if (mine === seq) ui.setAction(`Solicitado: ${command.nombre}…`);
+  if (mine === seq) ui.setAction(`Solicitado: ${prettyName(command.nombre)}…`);
   const startedAt = Date.now();
   const result = await sendMovement(vehicle.id, command.id_comando);
   if (mine === seq) watchForEvent(result.comando, mine, startedAt);

@@ -24,3 +24,9 @@ export function findCommand(name) {
 let demoRunning = false;
 export const isDemoRunning = () => demoRunning;
 export const setDemoRunning = (value) => { demoRunning = Boolean(value); };
+
+// Luz y Sonido inician activados. Es el estado supuesto según los comandos aceptados por la API
+// desde esta página; no confirma el estado físico del vehículo.
+const toggles = { luz: true, sonido: true };
+export const getToggle = (action) => toggles[action];
+export const flipToggle = (action) => { toggles[action] = !toggles[action]; return toggles[action]; };

@@ -1,12 +1,13 @@
 import { CONFIG } from './config.js';
 import { getVehicle } from './api.js';
-import { setVehicle, getDemos, findCommand, isDemoRunning } from './state.js';
+import { setVehicle, getDemos, findCommand, isDemoRunning, getToggle, flipToggle } from './state.js';
 import { beginHold, endHold, requestStop, requestToggle, onMovementEvent } from './commands.js';
 import { startSelectedDemo, cancelRunningDemo, onDemoEvent } from './demo.js';
 import { createJoystick } from './joystick.js';
 import { startWebSocket } from './websocket.js';
 import { startHealthMonitor } from './health.js';
 import { friendlyMessage } from './errors.js';
+import { prettyName } from './utils.js';
 import * as ui from './ui.js';
 
 // Dirección del joystick -> nombre de comando del catálogo real de la API.
@@ -33,7 +34,7 @@ function bindJoystick(elementId, source, map) {
     onChange(direction) {
       if (direction === null) return endHold(source);
       if (!findCommand(map[direction])) {
-        ui.setAction(`El comando «${map[direction]}» no está en el catálogo.`, 'error');
+        ui.setAction(`El comando «${prettyName(map[direction])}» no está en el catálogo.`, 'error');
         return;
       }
       beginHold(source, map[direction]);
@@ -42,11 +43,14 @@ function bindJoystick(elementId, source, map) {
 }
 
 function bindAuxButtons() {
+  ['luz', 'sonido'].forEach((action) => ui.renderToggle(action, getToggle(action)));
   document.querySelectorAll('[data-action]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       ui.setButtonState(btn, 'sending');
       btn.disabled = true;
-      const ok = await requestToggle(btn.dataset.action);
+      const action = btn.dataset.action;
+      const ok = await requestToggle(action);
+      if (ok && getToggle(action) !== undefined) ui.renderToggle(action, flipToggle(action));
       btn.disabled = false;
       ui.setButtonState(btn, ok ? 'idle' : 'error');
       if (!ok) setTimeout(() => ui.setButtonState(btn, 'idle'), 2000);
@@ -70,7 +74,6 @@ function handleWsEvent(msg) {
 bindJoystick('joystick-move', 'move', MOVE_MAP);
 bindJoystick('joystick-tool', 'tool', TOOL_MAP);
 bindAuxButtons();
-ui.initOperatorKey();
 
 document.getElementById('btn-stop').addEventListener('click', emergencyStop);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') emergencyStop(); });

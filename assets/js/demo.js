@@ -1,6 +1,7 @@
 import { startDemo, cancelDemo } from './api.js';
 import { getVehicleInfo, getDemos, isDemoRunning, setDemoRunning } from './state.js';
 import { friendlyMessage } from './errors.js';
+import { prettyName } from './utils.js';
 import * as ui from './ui.js';
 
 // La DEMO la ejecuta y temporiza el backend (orden, duración y pausa). Aquí solo se
@@ -22,7 +23,7 @@ export async function startSelectedDemo() {
   if (!vehicle || !demoId) return ui.setDemoStatus('Selecciona una DEMO.', 'error');
   if (isDemoRunning()) return ui.setDemoStatus('Ya hay una DEMO en ejecución.', 'error');
   const key = ui.getOperatorKey();
-  if (!key) return ui.setDemoStatus('Escribe la clave de operador para ejecutar la DEMO.', 'error');
+  if (!key) return ui.setDemoStatus('Falta configurar la clave de operador en js/config.js.', 'error');
 
   setRunning(true); // bloquea un segundo clic mientras responde la API
   try {
@@ -40,7 +41,7 @@ export async function cancelRunningDemo() {
   if (!vehicle) return;
   const key = ui.getOperatorKey();
   if (!key) {
-    ui.setDemoStatus('Para cancelar la DEMO escribe la clave de operador.', 'error');
+    ui.setDemoStatus('Falta configurar la clave de operador en js/config.js.', 'error');
     return;
   }
   try {
@@ -69,7 +70,7 @@ export function onDemoEvent(msg) {
       if (!isDemoRunning()) break; // un paso tardío no revive una DEMO ya cancelada o terminada
       ui.setDemoStatus(
         `DEMO en ejecución: paso ${Number.isFinite(msg.orden) ? msg.orden : '?'}${totalSteps ? ` de ${totalSteps}` : ''}` +
-        `${typeof msg.comando === 'string' ? ` · ${msg.comando.slice(0, 40)}` : ''}`, 'ok');
+        `${typeof msg.comando === 'string' ? ` · ${prettyName(msg.comando.slice(0, 40))}` : ''}`, 'ok');
       break;
     case 'demo_fin':
       setRunning(false);

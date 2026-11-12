@@ -166,9 +166,6 @@ body {
 .btn.btn-cancel { color: var(--text); background: transparent; border: 2px solid #4a545f; }
 .btn.btn-cancel:hover { border-color: var(--bad); color: #fff; background: rgba(255, 107, 94, .12); }
 .btn.btn-run:disabled, .btn.btn-cancel:disabled { opacity: .4; }
-.operator-row { display: flex; align-items: center; gap: .6rem; margin-top: .7rem; }
-.operator-row label { font-size: .85rem; color: var(--muted); white-space: nowrap; }
-.operator-row .form-control { max-width: 15rem; min-height: 42px; }
 .form-text { color: var(--muted); font-size: .78rem; }
 .demo-status {
   margin-top: .7rem; font-size: .92rem; line-height: 1.35; background: #14181c; border: 1px solid var(--line);
@@ -242,9 +239,6 @@ body {
   .form-select, .form-control { font-size: 1rem; min-height: 38px; padding-top: .2rem; padding-bottom: .2rem; }
   .btn.btn-run, .btn.btn-cancel { min-height: 38px; padding: 0 .65rem; font-size: .95rem; }
   .btn-cancel .btn-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
-  .operator-row { margin-top: .4rem; }
-  .operator-row label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
-  .operator-row .form-control { max-width: none; flex: 1; min-height: 36px; }
   .form-text { display: none; }
   .demo-status { margin-top: .4rem; padding: .25rem .5rem; font-size: .76rem; line-height: 1.25; min-height: 30px;
     display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -287,3 +281,15 @@ body {
 button, .btn, select, .joystick { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .joystick { touch-action: none; }
 .btn, .joystick, .stick-caption { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+
+/* Luz y Sonido: estado visible (icono, texto ON/OFF y color) */
+.btn.btn-aux { position: relative; }
+.toggle-badge {
+  position: absolute; top: 4px; right: 5px; padding: 0 .32rem; border-radius: 999px; font-style: normal;
+  font-family: var(--font-mono); font-size: .55rem; font-weight: 600; letter-spacing: .05em; line-height: 1.55;
+}
+.btn.btn-aux.is-on { border-color: rgba(61, 220, 132, .55); }
+.btn.btn-aux.is-on .toggle-badge { color: #0e1a12; background: var(--ok); }
+.btn.btn-aux.is-off { border-color: #4a545f; }
+.btn.btn-aux.is-off i { color: var(--muted); }
+.btn.btn-aux.is-off .toggle-badge { color: var(--text); background: #3a434c; }

@@ -1,4 +1,5 @@
 import { CONFIG } from './config.js';
+import { prettyName } from './utils.js';
 
 // Todo lo que toca el DOM. Los datos remotos se insertan solo con textContent.
 const $ = (id) => document.getElementById(id);
@@ -89,7 +90,7 @@ export function showWsEvent(msg) {
   const parts = [EVENT_NAMES[msg.evento] ?? clean(msg.evento)];
   if (typeof msg.comando === 'string') {
     const code = Number.isFinite(msg.codigo) ? ` (${msg.codigo})` : '';
-    parts.push(`${clean(msg.comando)}${code}`);
+    parts.push(`${prettyName(clean(msg.comando))}${code}`);
   }
   if (Number.isFinite(msg.orden)) parts.push(`paso ${msg.orden}`);
   if (Number.isFinite(msg.total_movimientos)) parts.push(`${msg.total_movimientos} movimientos`);
@@ -109,21 +110,9 @@ export function setButtonState(btn, state) {
 
 // ---------- DEMO y clave de operador ----------
 let demoCatalog = false;
-const KEY_STORAGE = 'control-iot:operator-key';
 
 export function getSelectedDemo() { return $('demo-select').value; }
-export function getOperatorKey() { return $('operator-key').value.trim(); }
-
-// La clave se escribe en la página y solo se guarda en esta pestaña (sessionStorage).
-export function initOperatorKey() {
-  const input = $('operator-key');
-  let saved = null;
-  try { saved = sessionStorage.getItem(KEY_STORAGE); } catch { /* sin almacenamiento */ }
-  input.value = saved ?? CONFIG.OPERATOR_KEY ?? '';
-  input.addEventListener('input', () => {
-    try { sessionStorage.setItem(KEY_STORAGE, input.value.trim()); } catch { /* sin almacenamiento */ }
-  });
-}
+export function getOperatorKey() { return String(CONFIG.OPERATOR_KEY ?? '').trim(); }
 
 export function setDemoStatus(text, level = 'info') {
   const box = $('demo-status');
@@ -137,4 +126,21 @@ export function updateDemoControls(running) {
   select.disabled = running || !demoCatalog;
   $('btn-demo-start').disabled = running || !demoCatalog || select.value === '';
   $('btn-demo-cancel').disabled = !demoCatalog; // cancelar nunca se bloquea por una DEMO en marcha
+}
+
+// ---------- Luz y Sonido: estado visible ----------
+const TOGGLE_VIEW = {
+  luz: { label: 'Luz', on: 'bi-lightbulb-fill', off: 'bi-lightbulb', onText: 'activada', offText: 'desactivada' },
+  sonido: { label: 'Sonido', on: 'bi-volume-up-fill', off: 'bi-volume-mute-fill', onText: 'activado', offText: 'desactivado' },
+};
+export function renderToggle(action, isOn) {
+  const view = TOGGLE_VIEW[action];
+  const btn = document.querySelector(`[data-action="${action}"]`);
+  if (!view || !btn) return;
+  btn.classList.toggle('is-on', isOn);
+  btn.classList.toggle('is-off', !isOn);
+  btn.setAttribute('aria-pressed', String(isOn));
+  btn.setAttribute('aria-label', `${view.label}: ${isOn ? view.onText : view.offText}`);
+  btn.querySelector('i').className = `bi ${isOn ? view.on : view.off}`;
+  btn.querySelector('.toggle-badge').textContent = isOn ? 'ON' : 'OFF';
 }

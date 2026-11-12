@@ -6,7 +6,7 @@ export const CONFIG = Object.freeze({
   HEALTH_PATH: '/health',
   HEALTH_INTERVAL_MS: 15000,
   REQUEST_TIMEOUT_MS: 8000,
-  // Clave de operador precargada por decisión del autor (práctica personal).
-  // Para quitarla: dejar la cadena vacía ('') y volver a escribirla en el campo.
+  // Clave de operador (X-API-Key): se envía siempre al iniciar y cancelar DEMO.
+  // Decisión del autor para una práctica personal; no se muestra en la interfaz.
   OPERATOR_KEY: 'ITPgalletas8293',
 });
