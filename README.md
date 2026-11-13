@@ -1,6 +1,6 @@
 # Control IoT
 
-Aplicación web de **CONTROL** para un vehículo IoT (Excavadora IoT). Es un frontend estático
+Aplicación web de **CONTROL** y **MONITOREO** para un vehículo IoT (Excavadora IoT). Es un frontend estático
 (HTML5, CSS3, Bootstrap 5 y JavaScript con módulos nativos) publicado en GitHub Pages. Envía las órdenes
 a la API FastAPI desplegada en AWS (REST por HTTPS) y mantiene una sesión WebSocket (WSS) para recibir
 los eventos que publica el backend.
@@ -8,15 +8,16 @@ los eventos que publica el backend.
 - Página publicada: https://a-common-person.github.io/control-iot/
 - API (Swagger): https://vehiculo-iot-erik.duckdns.org/docs
 
-Es la primera de las tres aplicaciones del proyecto (Control, Monitoreo y Administración). No incluye monitoreo,
-administración ni acceso directo a la base de datos, y no se conecta al microcontrolador.
+Son dos de las tres aplicaciones del proyecto (Control, Monitoreo y Administración), en una sola página con navegación
+entre vistas. No incluye administración ni acceso directo a la base de datos, y no se conecta al microcontrolador.
 
 ## Qué hace
 
 - **Mueve el vehículo** con dos joysticks virtuales (táctiles o con mouse) y con botones.
 - **Detiene el vehículo** con prioridad sobre cualquier otra acción (botón DETENER o tecla Esc).
 - **Ejecuta y cancela DEMO** que ya existen en la API. El orden, la duración y la pausa los respeta el backend.
-- **Muestra tres indicadores independientes** de conexión: WebSocket, API AWS y Amazon RDS.
+- **Monitorea en tiempo real** el último movimiento y los 10 movimientos individuales más recientes (vista Monitoreo).
+- **Muestra tres indicadores independientes** de conexión: WebSocket, API AWS y Amazon RDS, visibles en las dos vistas.
 - **Muestra cada acción** como «Solicitado», «Aceptado por la API» y «evento recibido», sin afirmar nunca que el vehículo se movió.
 - **Se adapta** a celular (vertical y horizontal, sin desplazamiento), tableta y escritorio.
 
@@ -72,25 +73,77 @@ La página muestra el progreso con los eventos recibidos (`demo_inicio`, `demo_m
 
 ```
 control-iot/
-├─ index.html           Página única (HTML semántico)
+├─ index.html           Página única con las vistas Control y Monitoreo
 ├─ README.md
 └─ assets/
    ├─ css/styles.css    Estilos propios sobre Bootstrap 5
    ├─ img/favicon.svg   Favicon y logotipo
    └─ js/
-      ├─ app.js         Arranque y conexión entre módulos
-      ├─ config.js      URLs públicas y configuración
-      ├─ api.js         Cliente REST (fetch, timeout, errores)
-      ├─ errors.js      Errores y mensajes amigables
-      ├─ state.js       Datos del vehículo, catálogo, estado de DEMO y de Luz/Sonido
-      ├─ commands.js    Única vía de envío de comandos (prioridad de DETENER, sin duplicados)
-      ├─ joystick.js    Joystick con Pointer Events y teclado
-      ├─ demo.js        Iniciar y cancelar DEMO, eventos de DEMO
-      ├─ websocket.js   Sesión WSS real y reconexión
-      ├─ health.js      Comprobación periódica de /health (API y RDS)
-      ├─ utils.js       Presentación de nombres (sin guiones bajos)
-      └─ ui.js          Único módulo que modifica el DOM
+      ├─ app.js          Arranque y conexión entre módulos (una sola sesión WSS compartida)
+      ├─ config.js       URLs públicas y configuración (incluida la zona horaria)
+      ├─ router.js       Navegación Control / Monitoreo por hash (#control, #monitoreo)
+      ├─ api.js          Cliente REST único (fetch, timeout, errores)
+      ├─ errors.js       Errores y mensajes amigables
+      ├─ state.js        Datos del vehículo, catálogo, estado de DEMO y de Luz/Sonido
+      ├─ websocket.js    Sesión WSS real y reconexión
+      ├─ health.js       Comprobación periódica de /health (API y RDS)
+      ├─ commands.js     CONTROL: única vía de envío de comandos (prioridad de DETENER)
+      ├─ joystick.js     CONTROL: joystick con Pointer Events y teclado
+      ├─ demo.js         CONTROL: iniciar y cancelar DEMO
+      ├─ monitor.js      MONITOREO: carga inicial, eventos en vivo y sincronización
+      ├─ monitor-view.js MONITOREO: tarjeta y tabla (único código que toca su DOM)
+      ├─ utils.js        Nombres legibles y formato de fecha y hora
+      └─ ui.js           CONTROL e indicadores: único módulo que modifica su DOM
 ```
+
+## Monitoreo (actividad 4.2)
+
+La vista **Monitoreo** amplía Control sin reemplazarlo: comparte cabecera, indicadores, conexión WebSocket, cliente REST
+y diseño. Se abre desde las pestañas «Control» y «Monitoreo» (`#control` y `#monitoreo`).
+
+- **Último movimiento:** tarjeta con el nombre, la fecha, la hora, el código y el origen, solo si la API o el evento los traen.
+  Muestra «Cargando…», «Sin movimientos» o «Sin datos actualizados» (último valor conocido) según el caso.
+  Es el último movimiento _reportado_; no confirma ejecución física.
+- **Tabla de 10 movimientos:** los movimientos individuales más recientes guardados en Amazon RDS, del más nuevo al más antiguo,
+  con `#`, Movimiento, Fecha y Hora (y Código e ID en pantallas anchas). El número de fila es solo visual. Los pasos de una DEMO
+  no se guardan en el historial, así que no aparecen.
+- **Línea de DEMO:** indica inicio, fin o cancelación de una DEMO con los eventos recibidos.
+
+### Contratos usados (reales, del `openapi.json`)
+
+| Uso                    | Método y ruta                    | Datos que se usan                                                                                    |
+| ---------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Último estado guardado | `GET /vehiculos/{id}/estado`     | `vehiculo`, `comando`, `codigo`, `fecha_actualizacion` (puede ser `null`)                            |
+| Historial individual   | `GET /vehiculos/{id}/historial`  | máximo 10, del más nuevo al más antiguo: `id_historial`, `comando`, `codigo`, `fecha_hora`, `origen` |
+| Eventos en vivo        | `wss://<host>/ws/vehiculos/{id}` | `movimiento`, `demo_inicio`, `demo_movimiento`, `demo_fin`, `demo_cancelada`, `estado_actual`        |
+
+### Cómo se mantiene actualizado
+
+1. **Carga inicial (REST):** al abrir Monitoreo se consultan el último estado y el historial.
+2. **Evento `movimiento` (WSS):** actualiza la tarjeta al instante y dispara una resincronización del historial por REST.
+   No hay polling. Si el registro persistido aún no aparece, se reintenta dos veces de forma acotada.
+3. **Pasos de DEMO (`demo_movimiento`):** actualizan solo la tarjeta; no se consulta ni se modifica el historial.
+4. **`estado_actual`:** su marca de tiempo es la de la conexión, no la del movimiento, así que no se muestra; se consulta el estado real por REST.
+5. **Reconexión del WSS o volver a Monitoreo:** se vuelve a consultar el estado y el historial para recuperar lo perdido.
+6. **Orden, duplicados y respuestas atrasadas:**
+   - Se ignoran los eventos de otro vehículo, los duplicados exactos y los eventos más viejos que el último aplicado.
+   - Una respuesta REST nunca sustituye a un evento que llegó después de pedirla.
+   - La tabla se reconstruye desde la respuesta confirmada, sin duplicados por `id_historial`, y se limita a 10 filas.
+
+### Fecha y hora
+
+Los eventos traen la hora en UTC (`+00:00`). `fecha_hora` y `fecha_actualizacion` de la base llegan sin zona y se interpretan
+según `DB_NAIVE_TIME_ZONE` en `assets/js/config.js` (por defecto `UTC`). Todo se muestra en `DISPLAY_TIME_ZONE`
+(`America/Mexico_City`). Si las horas de la tabla no coinciden con las de la tarjeta para el mismo movimiento, cambia `DB_NAIVE_TIME_ZONE` a `'local'`.
+
+### Cómo comprobarlo
+
+1. **Carga inicial:** abre `#monitoreo`; deben verse el último estado y hasta 10 filas con fecha y hora.
+2. **En vivo desde Control:** envía Avanzar, Girar a Derecha y Detener; la tarjeta cambia al instante y la tabla se actualiza sin recargar.
+3. **Origen externo:** con Monitoreo abierto, envía un movimiento desde otra pestaña, Postmate o Swagger (`POST /vehiculos/1/movimientos`).
+4. **Más de 10:** genera más de 10 movimientos; la tabla muestra exactamente los 10 más recientes, sin repetidos.
+5. **Reconexión:** corta y restablece la red (o `nssm stop/start` en el servidor); el WebSocket pasa a «Reconectando…», la tarjeta indica «Sin datos actualizados» y, al volver, se consulta de nuevo.
+6. **DEMO:** ejecuta una DEMO; la tarjeta muestra cada paso y la tabla no cambia.
 
 ## Requisitos
 

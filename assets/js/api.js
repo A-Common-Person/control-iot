@@ -75,3 +75,20 @@ export async function getHealth() {
   const { data } = await request(CONFIG.HEALTH_PATH, { timeoutMs: 5000 });
   return data;
 }
+
+// ----- Monitoreo (solo lectura) -----
+export async function getState(vehicleId) {
+  const { data } = await request(`/vehiculos/${vid(vehicleId)}/estado`);
+  if (data !== null && (typeof data !== 'object' || Array.isArray(data))) {
+    throw new ApiError('La API devolvió un estado con formato inesperado.', { kind: 'invalid' });
+  }
+  return data; // null si el vehículo aún no tiene estado
+}
+
+export async function getHistory(vehicleId) {
+  const { data } = await request(`/vehiculos/${vid(vehicleId)}/historial`);
+  if (!Array.isArray(data)) {
+    throw new ApiError('La API devolvió un historial con formato inesperado.', { kind: 'invalid' });
+  }
+  return data;
+}

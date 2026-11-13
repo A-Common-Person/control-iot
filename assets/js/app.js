@@ -4,6 +4,8 @@ import { setVehicle, getDemos, findCommand, isDemoRunning, getToggle, flipToggle
 import { beginHold, endHold, requestStop, requestToggle, onMovementEvent } from './commands.js';
 import { startSelectedDemo, cancelRunningDemo, onDemoEvent } from './demo.js';
 import { createJoystick } from './joystick.js';
+import { initRouter, getCurrentView } from './router.js';
+import * as monitor from './monitor.js';
 import { startWebSocket } from './websocket.js';
 import { startHealthMonitor } from './health.js';
 import { friendlyMessage } from './errors.js';
@@ -65,10 +67,18 @@ function emergencyStop() {
   if (demoWasRunning) cancelRunningDemo();
 }
 
+// Una sola sesión WSS compartida: cada evento llega a CONTROL y a MONITOREO.
 function handleWsEvent(msg) {
+  if (msg.id_vehiculo !== undefined && msg.id_vehiculo !== CONFIG.VEHICLE_ID) return; // otro vehículo
   ui.showWsEvent(msg);
   onMovementEvent(msg);
   onDemoEvent(msg);
+  monitor.onWsEvent(msg);
+}
+
+function handleWsState(state) {
+  ui.renderWsState(state);
+  monitor.onWsState(state);
 }
 
 bindJoystick('joystick-move', 'move', MOVE_MAP);
@@ -76,11 +86,12 @@ bindJoystick('joystick-tool', 'tool', TOOL_MAP);
 bindAuxButtons();
 
 document.getElementById('btn-stop').addEventListener('click', emergencyStop);
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') emergencyStop(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && getCurrentView() === 'control') emergencyStop(); });
 document.getElementById('demo-select').addEventListener('change', () => ui.updateDemoControls(isDemoRunning()));
 document.getElementById('btn-demo-start').addEventListener('click', startSelectedDemo);
 document.getElementById('btn-demo-cancel').addEventListener('click', cancelRunningDemo);
 
-startWebSocket({ vehicleId: CONFIG.VEHICLE_ID, onState: ui.renderWsState, onEvent: handleWsEvent });
+startWebSocket({ vehicleId: CONFIG.VEHICLE_ID, onState: handleWsState, onEvent: handleWsEvent });
 startHealthMonitor({ onResult: ui.renderHealth });
 loadVehicle();
+initRouter({ onChange: monitor.onViewChange });

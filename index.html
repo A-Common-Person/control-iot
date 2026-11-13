@@ -44,7 +44,15 @@
     <div class="hazard" aria-hidden="true"></div>
   </header>
 
-  <main class="shell layout">
+  <nav class="view-nav" aria-label="Vistas de la aplicación">
+    <div class="shell">
+      <a class="view-tab" href="#control" data-view="control"><i class="bi bi-joystick" aria-hidden="true"></i><span>Control</span></a>
+      <a class="view-tab" href="#monitoreo" data-view="monitoreo"><i class="bi bi-activity" aria-hidden="true"></i><span>Monitoreo</span></a>
+    </div>
+  </nav>
+
+  <main class="shell layout" id="view-control" aria-label="Control">
+    <h1 id="h-control" class="visually-hidden" tabindex="-1">Control del vehículo</h1>
     <!-- Consola: joystick izquierdo | botones centrales | joystick derecho -->
     <section class="console" aria-labelledby="h-ctrl">
       <h2 id="h-ctrl" class="visually-hidden">Controles del vehículo</h2>
@@ -101,6 +109,51 @@
         <div class="action-bar" id="event-bar" role="status" aria-live="off">Evento WebSocket: esperando…</div>
       </div>
     </aside>
+  </main>
+
+  <main class="shell monitor" id="view-monitor" aria-label="Monitoreo" hidden>
+    <h1 id="h-monitor" class="visually-hidden" tabindex="-1">Monitoreo del vehículo</h1>
+
+    <section class="panel last-card" id="last-card" data-state="loading" aria-labelledby="h-last">
+      <h2 id="h-last">Último movimiento</h2>
+      <div class="last-body">
+        <div class="last-icon" aria-hidden="true"><i id="last-icon" class="bi bi-hourglass-split"></i></div>
+        <div class="last-main">
+          <div class="last-name" id="last-name">Cargando…</div>
+          <div class="last-meta">
+            <span><i class="bi bi-calendar3" aria-hidden="true"></i><span class="visually-hidden">Fecha: </span><span id="last-date">—</span></span>
+            <span><i class="bi bi-clock" aria-hidden="true"></i><span class="visually-hidden">Hora: </span><span id="last-time">—</span></span>
+          </div>
+          <div class="last-extra" id="last-extra"></div>
+        </div>
+      </div>
+      <div class="demo-line" id="demo-line" hidden></div>
+      <p class="last-note" id="last-note" role="status" aria-live="polite">Consultando el último estado…</p>
+    </section>
+
+    <section class="panel history" aria-labelledby="h-hist">
+      <div class="history-head">
+        <h2 id="h-hist">Últimos 10 movimientos</h2>
+        <span class="history-status" id="history-status" role="status" aria-live="polite" data-level="wait">Cargando…</span>
+      </div>
+      <div class="table-wrap">
+        <table class="table-history">
+          <caption class="visually-hidden">Últimos diez movimientos individuales registrados en Amazon RDS, del más reciente al más antiguo. Horas en zona de Ciudad de México.</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="num">#</th>
+              <th scope="col">Movimiento</th>
+              <th scope="col" class="col-optional">Código</th>
+              <th scope="col">Fecha</th>
+              <th scope="col">Hora</th>
+              <th scope="col" class="col-optional">ID</th>
+            </tr>
+          </thead>
+          <tbody id="history-body"><tr><td colspan="6" class="table-empty">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+      <p class="history-note">Solo movimientos individuales guardados en Amazon RDS; los pasos de una DEMO no se registran aquí. Hora de Ciudad de México.</p>
+    </section>
   </main>
 
   <footer class="app-footer">
