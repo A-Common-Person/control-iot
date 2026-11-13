@@ -5,6 +5,7 @@ import { beginHold, endHold, requestStop, requestToggle, onMovementEvent } from 
 import { startSelectedDemo, cancelRunningDemo, onDemoEvent } from './demo.js';
 import { createJoystick } from './joystick.js';
 import { initRouter, getCurrentView } from './router.js';
+import { initFullscreen } from './fullscreen.js';
 import * as monitor from './monitor.js';
 import { startWebSocket } from './websocket.js';
 import { startHealthMonitor } from './health.js';
@@ -95,3 +96,4 @@ startWebSocket({ vehicleId: CONFIG.VEHICLE_ID, onState: handleWsState, onEvent: 
 startHealthMonitor({ onResult: ui.renderHealth });
 loadVehicle();
 initRouter({ onChange: monitor.onViewChange });
+initFullscreen(document.getElementById('btn-fullscreen'));

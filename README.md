@@ -19,6 +19,7 @@ entre vistas. No incluye administración ni acceso directo a la base de datos, y
 - **Monitorea en tiempo real** el último movimiento y los 10 movimientos individuales más recientes (vista Monitoreo).
 - **Muestra tres indicadores independientes** de conexión: WebSocket, API AWS y Amazon RDS, visibles en las dos vistas.
 - **Muestra cada acción** como «Solicitado», «Aceptado por la API» y «evento recibido», sin afirmar nunca que el vehículo se movió.
+- **Pantalla completa:** el botón junto al nombre del vehículo activa y quita la pantalla completa (oculta la barra del navegador). En Safari de iPhone el navegador no lo permite y el botón se oculta; allí sirve «Compartir → Añadir a pantalla de inicio».
 - **Se adapta** a celular (vertical y horizontal, sin desplazamiento), tableta y escritorio.
 
 ## Controles y movimientos
@@ -82,6 +83,7 @@ control-iot/
       ├─ app.js          Arranque y conexión entre módulos (una sola sesión WSS compartida)
       ├─ config.js       URLs públicas y configuración (incluida la zona horaria)
       ├─ router.js       Navegación Control / Monitoreo por hash (#control, #monitoreo)
+      ├─ fullscreen.js   Botón de pantalla completa (entrar y salir)
       ├─ api.js          Cliente REST único (fetch, timeout, errores)
       ├─ errors.js       Errores y mensajes amigables
       ├─ state.js        Datos del vehículo, catálogo, estado de DEMO y de Luz/Sonido
