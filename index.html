@@ -267,6 +267,19 @@
           </fieldset>
         </form>
         <p class="iot-feedback" id="model-feedback" role="status"></p>
+        <details class="model-capacities" id="capacity-panel" hidden>
+          <summary>Comandos habilitados</summary>
+          <form id="capacity-form">
+            <fieldset class="iot-form" id="capacity-fields" disabled>
+              <legend>Capacidades del modelo</legend>
+              <p class="iot-feedback">Cada unidad sólo puede usar sus comandos activos. DETENER se habilita cuando la unidad lo tiene activo.</p>
+              <p class="iot-feedback" id="capacity-empty" hidden>El catálogo aún no tiene otros comandos registrados.</p>
+              <div id="capacity-list" class="capacity-options"></div>
+              <button class="btn btn-outline-light session-button" id="capacity-save" type="submit">Guardar comandos</button>
+            </fieldset>
+          </form>
+          <p class="iot-feedback" id="capacity-feedback" role="status"></p>
+        </details>
       </section>
       <section class="panel" aria-labelledby="h-units">
         <h2 id="h-units">Unidades físicas</h2>

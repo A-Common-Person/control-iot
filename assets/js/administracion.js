@@ -1,4 +1,4 @@
-import { assignVehicle, createCustomer, getAudit, getCustomers, getInventory, getModels, releaseVehicle } from './api.js';
+import { assignVehicle, createCustomer, getAudit, getCapabilities, getCustomers, getInventory, getModels, releaseVehicle } from './api.js';
 import { initCatalogo } from './catalogo-admin.js';
 import { friendlyMessage } from './errors.js';
 import { formatDate, formatTime, parseTimestamp } from './utils.js';
@@ -13,6 +13,7 @@ const AUDIT = {
   'modelo.editado': 'Modelo actualizado',
   'modelo.desactivado': 'Modelo desactivado',
   'modelo.reactivado': 'Modelo reactivado',
+  'modelo.capacidades_actualizadas': 'Comandos del modelo actualizados',
   'unidad.creada': 'Unidad registrada',
   'unidad.editada': 'Unidad actualizada',
   'unidad.desactivada': 'Unidad desactivada',
@@ -164,14 +165,16 @@ export function initAdminView() {
     feedback(status, 'Consultando Administración…');
     updateButtons();
     try {
-      const [units, people, events, models] = await Promise.all([getInventory(), cargarCompradores(), getAudit(), getModels()]);
+      const [units, people, events, models, capabilities] = await Promise.all([
+        getInventory(), cargarCompradores(), getAudit(), getModels(), getCapabilities(),
+      ]);
       if (version !== request) return;
       unidades = units;
       compradores = people;
       renderInventory();
       renderMetrics(models);
       renderOptions();
-      catalogo.setData(models, units);
+      catalogo.setData(models, units, capabilities);
       renderAudit(events);
       feedback(status, '');
     } catch (error) {

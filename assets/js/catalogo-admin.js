@@ -1,4 +1,5 @@
-import { createModel, createUnit, saveModel, saveUnit } from './api.js';
+import { createModel, createUnit, saveCapabilities, saveModel, saveUnit } from './api.js';
+import { prettyName } from './utils.js';
 
 const byId = (id) => document.getElementById(id);
 const modeloLabel = (modelo) => `${modelo.nombre}${modelo.activo ? '' : ' · Inactivo'}`;
@@ -17,10 +18,41 @@ export function initCatalogo({ mutate, feedback }) {
   const unitPicker = byId('unit-picker');
   const modelFeedback = byId('model-feedback');
   const unitFeedback = byId('unit-feedback');
+  const capacityPanel = byId('capacity-panel');
+  const capacityList = byId('capacity-list');
+  const capacityFeedback = byId('capacity-feedback');
   const modelFields = modelForm.elements;
   const unitFields = unitForm.elements;
   let modelos = [];
   let unidades = [];
+  let catalogo = [];
+
+  function cargarCapacidades(modelo) {
+    capacityPanel.hidden = !modelo;
+    if (!modelo) {
+      capacityPanel.open = false;
+      capacityList.replaceChildren();
+      return;
+    }
+    const habilitados = new Set(modelo.codigos ?? []);
+    const comandos = new Map(catalogo.map(({ codigo, nombre }) => [codigo, prettyName(nombre)]));
+    for (const codigo of habilitados) {
+      if (!comandos.has(codigo)) comandos.set(codigo, `Comando ${codigo}`);
+    }
+    const opciones = Array.from(comandos, ([codigo, nombre]) => {
+      const label = document.createElement('label');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.value = String(codigo);
+      checkbox.checked = habilitados.has(codigo);
+      checkbox.className = 'form-check-input';
+      label.append(checkbox, document.createTextNode(nombre));
+      return label;
+    });
+    capacityList.replaceChildren(...opciones);
+    byId('capacity-empty').hidden = opciones.length !== 0;
+    byId('capacity-save').disabled = opciones.length === 0;
+  }
 
   function cargarModelo() {
     const actual = modelos.find((modelo) => String(modelo.id_modelo) === modelPicker.value);
@@ -29,6 +61,7 @@ export function initCatalogo({ mutate, feedback }) {
     modelFields.activo.checked = actual?.activo ?? true;
     byId('model-active-field').hidden = !actual;
     byId('model-save').textContent = actual ? 'Guardar modelo' : 'Crear modelo';
+    cargarCapacidades(actual);
   }
 
   function actualizarModeloObligatorio() {
@@ -55,9 +88,10 @@ export function initCatalogo({ mutate, feedback }) {
     byId('unit-save').textContent = actual ? 'Guardar unidad' : 'Registrar unidad';
   }
 
-  function setData(nuevosModelos, nuevasUnidades) {
+  function setData(nuevosModelos, nuevasUnidades, nuevosComandos = []) {
     modelos = nuevosModelos;
     unidades = nuevasUnidades;
+    catalogo = nuevosComandos;
     opciones(modelPicker, [new Option('Nuevo modelo', ''),
       ...modelos.map((modelo) => new Option(modeloLabel(modelo), modelo.id_modelo))]);
     opciones(unitPicker, [new Option('Nueva unidad', ''),
@@ -68,6 +102,7 @@ export function initCatalogo({ mutate, feedback }) {
 
   modelPicker.addEventListener('change', () => {
     feedback(modelFeedback, '');
+    feedback(capacityFeedback, '');
     cargarModelo();
   });
   unitPicker.addEventListener('change', () => {
@@ -75,6 +110,14 @@ export function initCatalogo({ mutate, feedback }) {
     cargarUnidad();
   });
   unitFields.estado_comercial.addEventListener('change', actualizarModeloObligatorio);
+
+  byId('capacity-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const id = modelPicker.value;
+    if (!id) return;
+    const codigos = Array.from(capacityList.querySelectorAll('input:checked'), (input) => Number(input.value));
+    mutate(() => saveCapabilities(id, codigos), 'Comandos guardados.', capacityFeedback);
+  });
 
   modelForm.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -104,11 +147,13 @@ export function initCatalogo({ mutate, feedback }) {
     setBlocked(blocked) {
       byId('model-fields').disabled = blocked;
       byId('unit-fields').disabled = blocked;
+      byId('capacity-fields').disabled = blocked;
     },
     reset() {
       setData([], []);
       feedback(modelFeedback, '');
       feedback(unitFeedback, '');
+      feedback(capacityFeedback, '');
     },
   };
 }

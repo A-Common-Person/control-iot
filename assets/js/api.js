@@ -128,6 +128,10 @@ export const sendTestControl = (id, accion) => request(`/vehiculos/${vid(id)}/co
 });
 export const getInventory = () => listar('/administracion/inventario');
 export const getModels = () => listar('/administracion/modelos');
+export const getCapabilities = () => listar('/administracion/capacidades');
+export const saveCapabilities = (id, codigos) => request(`/administracion/modelos/${vid(id)}/capacidades`, {
+  method: 'PUT', body: { codigos },
+});
 export const createModel = (body) => request('/administracion/modelos', { method: 'POST', body });
 export const saveModel = (id, body) => request(`/administracion/modelos/${vid(id)}`, { method: 'PUT', body });
 export const createUnit = (body) => request('/administracion/unidades', { method: 'POST', body });

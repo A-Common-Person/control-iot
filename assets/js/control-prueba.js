@@ -9,14 +9,15 @@ export function initTestControl() {
   let unit = null;
   let visible = false;
   let online = false;
+  let actions = [];
   let timer;
   let selection = 0;
   let lastAction = 0;
   const pending = new Map();
 
   function renderButtons() {
-    forward.disabled = !online || pending.size !== 0;
-    stop.disabled = !online || pending.has('detener');
+    forward.disabled = !online || !actions.includes('avanzar') || pending.size !== 0;
+    stop.disabled = !online || !actions.includes('detener') || pending.has('detener');
   }
 
   async function refresh(current) {
@@ -24,7 +25,13 @@ export function initTestControl() {
       const { data } = await getTestControl(unit);
       if (current !== selection) return;
       online = data?.dispositivo_en_linea === true;
-      const message = online ? 'ESP8266 autenticado y en línea.' : 'Esperando conexión del ESP8266.';
+      actions = Array.isArray(data?.acciones_habilitadas) ? data.acciones_habilitadas : [];
+      let message = 'Esperando conexión del ESP8266.';
+      if (online) {
+        message = 'ESP8266 autenticado y en línea.';
+        if (!actions.includes('detener')) message += ' La unidad requiere un comando DETENER activo.';
+        else if (!actions.includes('avanzar')) message += ' Avanzar está deshabilitado para esta unidad.';
+      }
       if (status.textContent !== message) status.textContent = message;
     } catch (error) {
       if (current !== selection) return;
