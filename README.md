@@ -53,6 +53,13 @@ de Monitoreo esté conectado. **Cancelar**, **DETENER** y **Escape** interrumpen
 la demo. Monitoreo muestra sus pasos y el estado final con las confirmaciones
 del ESP8266.
 
+En el acceso de Administración, **Entrar como invitado** muestra el catálogo
+público. En **Modelos comerciales → Comandos habilitados**, el administrador
+puede habilitar avance y giros para visitantes. En **Unidades físicas** puede
+marcar una unidad libre como **En exhibición**. Las pruebas ofrecen una reserva
+exclusiva de 45 s, cuenta regresiva, DETENER y **Finalizar prueba**. Un toque
+activa el movimiento hasta 2 s. DETENER interrumpe el movimiento en curso.
+
 ## Qué hace
 
 - **Mueve el vehículo** con dos joysticks virtuales (táctiles o con mouse) y con botones.

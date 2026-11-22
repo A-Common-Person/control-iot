@@ -439,6 +439,21 @@ body[data-preview] .layout, body[data-preview] .monitor { height: auto; overflow
 .audit-list li { display: grid; gap: .15rem; padding: .55rem 0; border-bottom: 1px solid var(--line); }
 .audit-list li:last-child { border-bottom: 0; }
 .audit-list time { color: var(--muted); font-size: .82rem; }
+.exhibition-entry { display: block; margin-top: 1rem; }
+.exhibition-view { display: grid; gap: .85rem; padding-block: 1rem 1.5rem; }
+.exhibition-heading, .exhibition-catalog-heading { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.exhibition-heading > div { flex: 1 1 12rem; min-width: 0; }
+.exhibition-heading h1, .exhibition-catalog-heading h2 { font: 700 clamp(1.55rem, 4vw, 2.2rem)/1.1 var(--font-head); margin: 0; }
+.exhibition-heading p { margin: .4rem 0 0; color: var(--muted); }
+.exhibition-catalog-heading { justify-content: space-between; margin-bottom: .7rem; }
+.exhibition-models { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: .75rem; }
+.exhibition-units { padding: 0; margin: .7rem 0 0; list-style: none; }
+.exhibition-units li { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .6rem; border-top: 1px solid var(--line); padding: .65rem 0 0; }
+.exhibition-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .75rem; }
+.exhibition-session[hidden] { display: none; }
+.exhibition-view .panel h2 { position: static; width: auto; height: auto; margin: 0 0 .75rem; overflow: visible; clip: auto; white-space: normal; }
+#guest-countdown { color: var(--yellow); font-variant-numeric: tabular-nums; }
+
 .preview-control, .demo-editor { grid-column: 1 / -1; }
 .demo-editor[hidden] { display: none; }
 .demo-picker { display: block; margin-block: .75rem; }

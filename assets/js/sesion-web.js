@@ -1,6 +1,7 @@
 import { getMyVehicles, getVehicle, login, logout, setSessionToken } from './api.js';
 import { initAuthorizedDemo } from './demo.js';
 import { initDemoEditor } from './editor-demos.js';
+import { initExhibition } from './exhibicion.js';
 import { initAdminView } from './administracion.js';
 import { initTestControl } from './control-prueba.js';
 import { friendlyMessage } from './errors.js';
@@ -20,6 +21,7 @@ export function initAdministrationPreview() {
   const vehiclePicker = byId('vehicle-picker');
   const vehicleFeedback = byId('vehicle-feedback');
   const admin = initAdminView();
+  const exhibition = initExhibition();
   const playback = initAuthorizedDemo({ onActive: (active) => testControl.setDemoActive(active) });
   const testControl = initTestControl({
     onDemoState: playback.sync, onDemoStop: playback.stop, onManualBusy: playback.onManualBusy,
@@ -41,9 +43,10 @@ export function initAdministrationPreview() {
   const router = initRouter({
     onChange(vista) {
       monitor.onViewChange(vista);
+      exhibition.setActive(vista === 'invitado');
       testControl.show(vista === 'control');
     },
-    allowed: () => VISTAS[sesion?.usuario.rol] ?? ['acceso'],
+    allowed: () => VISTAS[sesion?.usuario.rol] ?? ['acceso', 'invitado'],
   });
 
   function informeLogin(mensaje, nivel = '') {

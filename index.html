@@ -196,6 +196,32 @@
         <button class="btn btn-warning iot-primary" type="submit">Iniciar sesión</button>
       </form>
       <p class="iot-feedback" id="login-feedback" role="status"></p>
+      <a class="btn btn-outline-light session-button exhibition-entry" href="#invitado">Entrar como invitado</a>
+    </section>
+  </main>
+
+  <main class="shell exhibition-view" id="view-exhibition" aria-labelledby="h-exhibition" hidden>
+    <header class="panel exhibition-heading">
+      <img src="assets/img/favicon.svg" width="48" height="48" alt="" aria-hidden="true">
+      <div>
+        <h1 id="h-exhibition" tabindex="-1">Prueba nuestros vehículos IoT</h1>
+        <p>Consulta los modelos y prueba una unidad de exhibición durante 45 segundos.</p>
+      </div>
+      <a class="btn btn-outline-light session-button" href="#acceso">Iniciar sesión</a>
+    </header>
+    <section class="panel exhibition-session" id="guest-session" aria-labelledby="h-guest-session" hidden>
+      <h2 id="h-guest-session">Prueba en curso</h2>
+      <p>Tiempo restante: <strong id="guest-countdown">0</strong> s</p>
+      <div id="guest-commands" class="exhibition-actions"></div>
+      <button type="button" class="btn btn-outline-light session-button" id="guest-end">Finalizar prueba</button>
+    </section>
+    <p class="iot-feedback" id="guest-feedback" role="status"></p>
+    <section aria-labelledby="h-exhibition-models">
+      <div class="exhibition-catalog-heading">
+        <h2 id="h-exhibition-models">Catálogo</h2>
+        <button type="button" class="btn btn-outline-light session-button" id="exhibition-refresh">Actualizar</button>
+      </div>
+      <div id="exhibition-models" class="exhibition-models"></div>
     </section>
   </main>
 
@@ -278,6 +304,16 @@
             </fieldset>
           </form>
           <p class="iot-feedback" id="capacity-feedback" role="status"></p>
+          <form id="guest-capability-form">
+            <fieldset class="iot-form" id="guest-capability-fields" disabled>
+              <legend>Mandos para invitados</legend>
+              <p class="iot-feedback">Sólo se aplican a las unidades en exhibición. DETENER es obligatorio.</p>
+              <p class="iot-feedback" id="guest-capability-empty" hidden>El modelo requiere avance o un giro habilitado.</p>
+              <div id="guest-capability-list" class="capacity-options"></div>
+              <button class="btn btn-outline-light session-button" id="guest-capability-save" type="submit">Guardar mandos de exhibición</button>
+            </fieldset>
+          </form>
+          <p class="iot-feedback" id="guest-capability-feedback" role="status"></p>
         </details>
       </section>
       <section class="panel" aria-labelledby="h-units">

@@ -4,6 +4,7 @@ const VIEWS = {
   monitoreo: { id: 'view-monitor', title: 'Monitoreo IoT · Excavadora' },
   administracion: { id: 'view-admin', title: 'Administración · IoT' },
   acceso: { id: 'view-login', title: 'Iniciar sesión · IoT' },
+  invitado: { id: 'view-exhibition', title: 'Exhibición · IoT' },
 };
 
 const DEFAULT_VIEWS = ['control', 'monitoreo'];
@@ -22,7 +23,7 @@ export function initRouter({ onChange, allowed = () => DEFAULT_VIEWS }) {
     Object.entries(VIEWS).forEach(([key, view]) => {
       document.getElementById(view.id).hidden = key !== name;
     });
-    nav.hidden = name === 'acceso';
+    nav.hidden = name === 'acceso' || name === 'invitado';
     document.querySelectorAll('.view-tab').forEach((tab) => {
       tab.hidden = !available.includes(tab.dataset.view);
       if (tab.dataset.view === name) tab.setAttribute('aria-current', 'page');

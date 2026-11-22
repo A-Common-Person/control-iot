@@ -138,6 +138,16 @@ export const startAuthorizedDemo = (unit, demo, link) => request(`/vehiculos/${v
 export const cancelAuthorizedDemo = (unit) => request(`/vehiculos/${vid(unit)}/demos/cancelar`, {
   method: 'POST', timeoutMs: 20000,
 });
+export const getExhibition = () => request('/exhibicion/catalogo', { auth: false });
+export const startGuestSession = (unit) => request(`/exhibicion/unidades/${vid(unit)}/sesiones`, {
+  method: 'POST', auth: false,
+});
+export const endGuestSession = (token) => request('/exhibicion/sesion', {
+  method: 'DELETE', auth: false, headers: { Authorization: `Bearer ${token}` },
+});
+export const saveGuestCapabilities = (id, codigos) => request(`/administracion/modelos/${vid(id)}/capacidades-invitado`, {
+  method: 'PUT', body: { codigos },
+});
 export const getInventory = () => listar('/administracion/inventario');
 export const getModels = () => listar('/administracion/modelos');
 export const getCapabilities = () => listar('/administracion/capacidades');

@@ -1,4 +1,4 @@
-import { createModel, createUnit, saveCapabilities, saveModel, saveUnit } from './api.js';
+import { createModel, createUnit, saveCapabilities, saveGuestCapabilities, saveModel, saveUnit } from './api.js';
 import { prettyName } from './utils.js';
 
 const byId = (id) => document.getElementById(id);
@@ -21,6 +21,8 @@ export function initCatalogo({ mutate, feedback }) {
   const capacityPanel = byId('capacity-panel');
   const capacityList = byId('capacity-list');
   const capacityFeedback = byId('capacity-feedback');
+  const guestList = byId('guest-capability-list');
+  const guestFeedback = byId('guest-capability-feedback');
   const modelFields = modelForm.elements;
   const unitFields = unitForm.elements;
   let modelos = [];
@@ -32,6 +34,7 @@ export function initCatalogo({ mutate, feedback }) {
     if (!modelo) {
       capacityPanel.open = false;
       capacityList.replaceChildren();
+      guestList.replaceChildren();
       return;
     }
     const habilitados = new Set(modelo.codigos ?? []);
@@ -52,6 +55,20 @@ export function initCatalogo({ mutate, feedback }) {
     capacityList.replaceChildren(...opciones);
     byId('capacity-empty').hidden = opciones.length !== 0;
     byId('capacity-save').disabled = opciones.length === 0;
+    const invitado = new Set(modelo.codigos_invitado ?? []);
+    const elegibles = [1, 3, 4].filter((codigo) => habilitados.has(codigo));
+    guestList.replaceChildren(...elegibles.map((codigo) => {
+      const label = document.createElement('label');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.value = String(codigo);
+      checkbox.checked = invitado.has(codigo);
+      checkbox.className = 'form-check-input';
+      label.append(checkbox, document.createTextNode(comandos.get(codigo)));
+      return label;
+    }));
+    byId('guest-capability-empty').hidden = elegibles.length > 0;
+    byId('guest-capability-save').disabled = !elegibles.length;
   }
 
   function cargarModelo() {
@@ -103,6 +120,7 @@ export function initCatalogo({ mutate, feedback }) {
   modelPicker.addEventListener('change', () => {
     feedback(modelFeedback, '');
     feedback(capacityFeedback, '');
+    feedback(guestFeedback, '');
     cargarModelo();
   });
   unitPicker.addEventListener('change', () => {
@@ -117,6 +135,14 @@ export function initCatalogo({ mutate, feedback }) {
     if (!id) return;
     const codigos = Array.from(capacityList.querySelectorAll('input:checked'), (input) => Number(input.value));
     mutate(() => saveCapabilities(id, codigos), 'Comandos guardados.', capacityFeedback);
+  });
+
+  byId('guest-capability-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const id = modelPicker.value;
+    if (!id) return;
+    const codigos = Array.from(guestList.querySelectorAll('input:checked'), (input) => Number(input.value));
+    mutate(() => saveGuestCapabilities(id, codigos), 'Mandos de exhibición guardados.', guestFeedback);
   });
 
   modelForm.addEventListener('submit', (event) => {
@@ -148,12 +174,14 @@ export function initCatalogo({ mutate, feedback }) {
       byId('model-fields').disabled = blocked;
       byId('unit-fields').disabled = blocked;
       byId('capacity-fields').disabled = blocked;
+      byId('guest-capability-fields').disabled = blocked;
     },
     reset() {
       setData([], []);
       feedback(modelFeedback, '');
       feedback(unitFeedback, '');
       feedback(capacityFeedback, '');
+      feedback(guestFeedback, '');
     },
   };
 }
