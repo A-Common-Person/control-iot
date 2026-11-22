@@ -284,10 +284,13 @@ export function onWsEvent(msg) {
       }); // los pasos de DEMO actualizan la tarjeta, no el historial individual
       break;
     case 'demo_fin':
-      view.renderDemoLine('DEMO finalizada.');
-      break;
     case 'demo_cancelada':
-      view.renderDemoLine('DEMO cancelada.');
+    case 'demo_error':
+      view.renderDemoLine(msg.evento === 'demo_error' ? msg.mensaje || 'Error en la DEMO.'
+        : msg.evento === 'demo_fin' ? 'DEMO finalizada.' : 'DEMO cancelada.');
+      if (msg.detencion_confirmada && typeof msg.comando === 'string' && isNotOlder(ts)) {
+        setCardFromEvent({ name: msg.comando, code: msg.codigo, ts, type: 'DETENER confirmado por el ESP8266' });
+      }
       break;
     case 'estado_actual':
       // Su marca de tiempo es la de la conexión, no la del movimiento: se pide el estado real por REST.

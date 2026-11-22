@@ -126,6 +126,18 @@ export const getTestControl = (id) => request(`/vehiculos/${vid(id)}/control/pru
 export const sendControlOrder = (id, body) => request(`/vehiculos/${vid(id)}/control/orden`, {
   method: 'POST', body, timeoutMs: 20000,
 });
+const editorDemosPath = (unidad) => `/vehiculos/${vid(unidad)}/demos/editor`;
+export const getDemoEditor = (unidad) => request(editorDemosPath(unidad));
+export const getEditableDemo = (unidad, demo) => request(`${editorDemosPath(unidad)}/${vid(demo)}`);
+export const saveEditableDemo = (unidad, demo, body) => (demo
+  ? request(`${editorDemosPath(unidad)}/${vid(demo)}`, { method: 'PUT', body })
+  : request(editorDemosPath(unidad), { method: 'POST', body }));
+export const startAuthorizedDemo = (unit, demo, link) => request(`/vehiculos/${vid(unit)}/demos/${vid(demo)}/iniciar`, {
+  method: 'POST', body: { id_enlace: link }, timeoutMs: 12000,
+});
+export const cancelAuthorizedDemo = (unit) => request(`/vehiculos/${vid(unit)}/demos/cancelar`, {
+  method: 'POST', timeoutMs: 20000,
+});
 export const getInventory = () => listar('/administracion/inventario');
 export const getModels = () => listar('/administracion/modelos');
 export const getCapabilities = () => listar('/administracion/capacidades');

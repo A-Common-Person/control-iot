@@ -10,6 +10,10 @@ ROOT = Path(__file__).resolve().parents[1]
 class FrontendHandler(SimpleHTTPRequestHandler):
     extensions_map = {**SimpleHTTPRequestHandler.extensions_map, ".js": "text/javascript"}
 
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
     def send_head(self):
         destino = Path(self.translate_path(self.path)).resolve()
         raiz = Path(self.directory).resolve()
@@ -17,6 +21,8 @@ class FrontendHandler(SimpleHTTPRequestHandler):
         if destino not in (raiz, raiz / "index.html") and not activo:
             self.send_error(HTTPStatus.NOT_FOUND)
             return None
+        # La vista local debe cargar la misma versión del HTML y los módulos.
+        del self.headers["If-Modified-Since"]
         return super().send_head()
 
 

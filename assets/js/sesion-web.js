@@ -1,4 +1,6 @@
 import { getMyVehicles, getVehicle, login, logout, setSessionToken } from './api.js';
+import { initAuthorizedDemo } from './demo.js';
+import { initDemoEditor } from './editor-demos.js';
 import { initAdminView } from './administracion.js';
 import { initTestControl } from './control-prueba.js';
 import { friendlyMessage } from './errors.js';
@@ -18,7 +20,12 @@ export function initAdministrationPreview() {
   const vehiclePicker = byId('vehicle-picker');
   const vehicleFeedback = byId('vehicle-feedback');
   const admin = initAdminView();
-  const testControl = initTestControl();
+  const playback = initAuthorizedDemo({ onActive: (active) => testControl.setDemoActive(active) });
+  const testControl = initTestControl({
+    onDemoState: playback.sync, onDemoStop: playback.stop, onManualBusy: playback.onManualBusy,
+  });
+  const demoPanel = byId('buyer-demo-editor');
+  const demos = initDemoEditor(demoPanel, { onSave: cargarDetalle });
   let sesion = null;
   let asignados = [];
   let unidad = null;
@@ -50,7 +57,10 @@ export function initAdministrationPreview() {
     canal = null;
     unidad = null;
     setVehicle(null);
+    playback.select(null);
     testControl.select(null);
+    demoPanel.hidden = true;
+    demos.select(null);
     monitor.selectVehicle(null);
     ui.renderWsState('inactive');
     byId('event-bar').textContent = 'Sin suscripción activa.';
@@ -102,7 +112,10 @@ export function initAdministrationPreview() {
     setVehicle(vehiculo);
     ui.setVehicleName(`${vehiculo.nombre} · ID ${unidad}`);
     monitor.selectVehicle(unidad);
-    testControl.select(unidad);
+    playback.select(unidad);
+    testControl.select(unidad, sesion.access_token);
+    demoPanel.hidden = false;
+    demos.select(unidad);
     canal = startWebSocket({
       vehicleId: unidad,
       token: sesion.access_token,
@@ -110,21 +123,29 @@ export function initAdministrationPreview() {
         if (seleccion !== actual) return;
         ui.renderWsState(estado);
         monitor.onWsState(estado);
+        playback.onWsState(estado);
       },
       onEvent(evento) {
         if (seleccion !== actual) return;
         ui.showWsEvent(evento);
         monitor.onWsEvent(evento);
+        playback.onEvent(evento);
       },
       onDenied(codigo) {
         if (seleccion === actual) accesoPerdido(codigo);
       },
     });
+    cargarDetalle();
+  }
 
+  async function cargarDetalle() {
+    if (!unidad) return;
+    const actual = seleccion;
     try {
       const detalle = await getVehicle(unidad);
       if (seleccion !== actual) return;
       setVehicle(detalle);
+      playback.refreshCatalog();
     } catch (error) {
       if (seleccion !== actual) return;
       if (error.status === 403) accesoPerdido(4403);

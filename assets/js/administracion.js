@@ -1,10 +1,13 @@
 import { assignVehicle, createCustomer, getAudit, getCapabilities, getCustomers, getInventory, getModels, releaseVehicle } from './api.js';
+import { initDemoEditor } from './editor-demos.js';
 import { initCatalogo } from './catalogo-admin.js';
 import { friendlyMessage } from './errors.js';
 import { formatDate, formatTime, parseTimestamp } from './utils.js';
 
 const STATUS = { disponible: 'Disponible', asignado: 'Asignada', exhibicion: 'En exhibición', inactivo: 'Inactiva' };
 const AUDIT = {
+  'demo.creada': 'Demo creada',
+  'demo.editada': 'Demo actualizada',
   'cliente.creado': 'Comprador registrado',
   'unidad.asignada': 'Unidad asignada',
   'unidad.reasignada': 'Unidad reasignada',
@@ -53,6 +56,9 @@ export function initAdminView() {
   const assignmentStatus = node('assignment-feedback');
   const customerStatus = node('customer-feedback');
   const catalogo = initCatalogo({ mutate, feedback });
+  const demoPicker = node('demo-unit');
+  const demos = initDemoEditor(node('admin-demo-editor'), { onSave: refresh });
+  demoPicker.addEventListener('change', () => demos.select(Number(demoPicker.value) || null));
 
   let unidades = [];
   let compradores = [];
@@ -124,6 +130,14 @@ export function initAdminView() {
       ...eligible.map((u) => new Option(vehicleName(u), u.id_vehiculo)),
     );
     if (eligible.some((u) => String(u.id_vehiculo) === previous)) unitSelect.value = previous;
+    const demoUnit = demoPicker.value;
+    const demoUnits = unidades.filter((u) => u.activo && u.estado_comercial !== 'inactivo');
+    demoPicker.replaceChildren(new Option('Selecciona una unidad', ''), ...demoUnits.map((u) => (
+      new Option(vehicleName(u), u.id_vehiculo)
+    )));
+    if (demoUnits.some((u) => String(u.id_vehiculo) === demoUnit)) demoPicker.value = demoUnit;
+    demoPicker.disabled = !demoUnits.length;
+    if (!demoPicker.value) demos.select(null);
     const active = compradores.filter((p) => p.activo);
     customerSelect.replaceChildren(
       new Option(active.length ? 'Selecciona un comprador' : 'Sin compradores activos', ''),
@@ -246,6 +260,9 @@ export function initAdminView() {
       cargando = false;
       guardando = false;
       unidades = [];
+      demoPicker.replaceChildren();
+      demoPicker.disabled = true;
+      demos.select(null);
       compradores = [];
       inventory.replaceChildren();
       audit.replaceChildren();

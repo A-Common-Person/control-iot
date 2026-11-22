@@ -393,7 +393,8 @@ button, .btn, select, .joystick { touch-action: manipulation; -webkit-tap-highli
   display: none !important;
 }
 
-body[data-preview] { min-height: 100svh; height: auto; overflow: auto; }
+body[data-preview] { min-height: 100svh; height: auto; overflow: auto; margin: 0; }
+body[data-preview] .shell, .demo-editor :is(input, select, textarea) { box-sizing: border-box; }
 body[data-preview] .layout, body[data-preview] .monitor { height: auto; overflow: visible; }
 .session-bar { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem 1rem; padding-block: .6rem; }
 .session-identity { display: grid; margin-right: auto; min-width: 8rem; }
@@ -438,11 +439,19 @@ body[data-preview] .layout, body[data-preview] .monitor { height: auto; overflow
 .audit-list li { display: grid; gap: .15rem; padding: .55rem 0; border-bottom: 1px solid var(--line); }
 .audit-list li:last-child { border-bottom: 0; }
 .audit-list time { color: var(--muted); font-size: .82rem; }
-.preview-control { grid-column: 1 / -1; }
-body[data-preview] #view-control .side > .panel,
+.preview-control, .demo-editor { grid-column: 1 / -1; }
+.demo-editor[hidden] { display: none; }
+.demo-picker { display: block; margin-block: .75rem; }
+.demo-picker .form-select, #demo-unit { min-height: 42px; }
+.demo-editor .demo-active { display: flex; align-items: center; gap: .45rem; }
+.demo-editor-steps { margin: 0; padding-left: 1.5rem; }
+.demo-editor-step { padding: .65rem 0; border-top: 1px solid var(--line); }
+.demo-editor-step label { display: inline-block; width: min(48%, 10rem); margin: .55rem .4rem .4rem 0; }
+.demo-step-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; }
+.demo-step-actions output { margin: 0; }
 body[data-preview] #aux-controls :is([data-action="demo"], .toggle-badge) { display: none; }
 body[data-preview] .joystick[inert] { opacity: .5; }
-body[data-preview] .admin-view .panel h2, .preview-control h2 {
+body[data-preview] .admin-view .panel h2, .preview-control h2, .demo-editor h2 {
   position: static; width: auto; height: auto; margin: 0 0 .75rem; overflow: visible; clip: auto; white-space: normal;
 }
 body[data-preview] .admin-view :focus-visible, body[data-preview] .access-view :focus-visible,

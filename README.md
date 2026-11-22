@@ -32,12 +32,26 @@ Comprador, **Mis vehículos** lista las unidades asignadas y **Monitoreo** abre 
 WebSocket autorizado de la selección. Al perder la asignación, el canal se cierra y
 la página actualiza la lista. El token se conserva en memoria mientras dura la página.
 
-El ensayo usa FastAPI en el puerto 8001 y la copia de RDS. En **Control**, cada
-cambio de dirección en los joysticks envía un pulso de 250 ms. Los mandos dependen
-del modelo y de los códigos que anuncia el ESP8266 al conectarse. Usa **DETENER**
-o **Escape** para cancelar una orden pendiente. La preparación del dispositivo está
-en el README del backend. La URL
+El ensayo usa FastAPI en el puerto 8001 y la copia de RDS. En **Control**, el
+sketch actualizado mantiene el movimiento mientras sostienes el joystick.
+El joystick se habilita cuando el ESP8266 anuncia el modo continuo. La
+dirección se mantiene activa sin temporizador y se apaga al soltar o al
+detectar una desconexión.
+Suelta la palanca, pulsa **DETENER** o usa **Escape** para parar. Luz, sonido
+y velocidad se accionan con toques individuales. La preparación del
+dispositivo está en el README del backend. La URL
 habitual de GitHub Pages ejecuta el modo compatible de Control y Monitoreo.
+
+En Administración, **Demos de empresa** permite seleccionar una unidad y crear
+sus secuencias. En Control, **Mis demos** muestra el editor del comprador para la
+unidad seleccionada. Puedes agregar, quitar o reordenar pasos, indicar duración y
+pausa, y cambiar el estado de la demo. **Cancelar cambios** recupera la última
+versión cargada. En **Control → Secuencia DEMO** se pueden ejecutar las demos
+activas de empresa y las privadas de la unidad. Si el selector no permite
+iniciar, comprueba que el ESP8266 tenga el sketch actualizado y que el canal
+de Monitoreo esté conectado. **Cancelar**, **DETENER** y **Escape** interrumpen
+la demo. Monitoreo muestra sus pasos y el estado final con las confirmaciones
+del ESP8266.
 
 ## Qué hace
 

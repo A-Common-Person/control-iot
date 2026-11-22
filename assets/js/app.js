@@ -9,7 +9,6 @@ import { initFullscreen } from './fullscreen.js';
 import * as monitor from './monitor.js';
 import { startWebSocket } from './websocket.js';
 import { startHealthMonitor } from './health.js';
-import { initAdministrationPreview } from './sesion-web.js';
 import { friendlyMessage } from './errors.js';
 import { prettyName } from './utils.js';
 import * as ui from './ui.js';
@@ -99,7 +98,24 @@ function startLegacy() {
   initRouter({ onChange: monitor.onViewChange });
 }
 
-if (CONFIG.ADMINISTRACION_LOCAL) initAdministrationPreview();
-else startLegacy();
+async function startAdministration() {
+  try {
+    const { initAdministrationPreview } = await import('./sesion-web.js');
+    initAdministrationPreview();
+  } catch (error) {
+    console.error('No se pudo iniciar Administración IoT:', error);
+    document.querySelectorAll('main').forEach((view) => { view.hidden = view.id !== 'view-login'; });
+    document.querySelector('.view-nav').hidden = true;
+    document.getElementById('session-bar').hidden = true;
+    document.querySelector('#login-form button[type="submit"]').disabled = true;
+    const feedback = document.getElementById('login-feedback');
+    feedback.textContent = 'No se pudo cargar Administración. Recarga la página con Ctrl+F5.';
+    feedback.dataset.level = 'error';
+    ui.renderWsState('inactive');
+  }
+}
+
 startHealthMonitor({ onResult: ui.renderHealth });
 initFullscreen(document.getElementById('btn-fullscreen'));
+if (CONFIG.ADMINISTRACION_LOCAL) startAdministration();
+else startLegacy();

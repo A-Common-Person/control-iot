@@ -73,7 +73,7 @@
     <section class="panel preview-control" id="preview-control" aria-labelledby="h-preview-control" hidden>
       <h2 id="h-preview-control">Control de la unidad</h2>
       <p class="iot-feedback" id="pulse-status" role="status">Selecciona una unidad asignada.</p>
-      <p class="iot-feedback">Cada cambio de dirección envía un pulso de 250 ms. Para detener, usa DETENER o Escape.</p>
+      <p class="iot-feedback">Mantén el joystick para mover y suéltalo para parar. También puedes usar DETENER o Escape.</p>
     </section>
     <!-- Consola: joystick izquierdo | botones centrales | joystick derecho -->
     <section class="console" aria-labelledby="h-ctrl">
@@ -131,6 +131,9 @@
         <div class="action-bar" id="event-bar" role="status" aria-live="off">Evento WebSocket: esperando…</div>
       </div>
     </aside>
+    <section class="panel demo-editor" id="buyer-demo-editor" aria-labelledby="h-buyer-demo-editor" hidden>
+      <h2 id="h-buyer-demo-editor">Mis demos</h2>
+    </section>
   </main>
 
   <main class="shell monitor" id="view-monitor" aria-label="Monitoreo" hidden>
@@ -313,6 +316,11 @@
         <p class="iot-feedback" id="unit-feedback" role="status"></p>
       </section>
     </div>
+    <section class="panel demo-editor" id="admin-demo-editor" aria-labelledby="h-admin-demo-editor">
+      <h2 id="h-admin-demo-editor">Demos de empresa</h2>
+      <label class="demo-picker" for="demo-unit">Unidad</label>
+      <select class="form-select" id="demo-unit" disabled></select>
+    </section>
     <div class="admin-columns">
       <section class="panel" aria-labelledby="h-customers">
         <h2 id="h-customers">Registrar comprador</h2>
@@ -340,6 +348,34 @@
       </section>
     </div>
   </main>
+
+<template id="demo-editor-template">
+  <label class="demo-picker">Demo
+    <select class="form-select" data-demo-picker disabled><option value="">Nueva demo</option></select>
+  </label>
+  <form>
+    <fieldset class="iot-form" disabled>
+      <label>Nombre
+        <input class="form-control" name="nombre" maxlength="80" required>
+      </label>
+      <label>Descripción
+        <textarea class="form-control" name="descripcion" maxlength="255" rows="2"></textarea>
+      </label>
+      <label class="demo-active"><input class="form-check-input" type="checkbox" name="activo" checked> Demo activa</label>
+      <ol class="demo-editor-steps" aria-label="Pasos en orden de ejecución"></ol>
+      <small>Hasta 20 pasos. Duración por paso entre 100 y 3,000 ms. Pausa hasta 3,000 ms.</small>
+      <div class="demo-step-actions">
+        <button class="btn btn-outline-light session-button" type="button" data-demo-add>Agregar paso</button>
+        <output class="iot-feedback" aria-live="polite">0 s de 30 s</output>
+      </div>
+      <div class="demo-step-actions">
+        <button class="btn btn-warning iot-primary" type="submit">Guardar demo</button>
+        <button class="btn btn-outline-light session-button" type="button" data-demo-reset>Cancelar cambios</button>
+      </div>
+    </fieldset>
+  </form>
+  <p class="iot-feedback" data-demo-feedback role="status"></p>
+</template>
 
   <footer class="app-footer">
     <div class="hazard" aria-hidden="true"></div>
