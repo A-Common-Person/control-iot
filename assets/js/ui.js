@@ -1,4 +1,3 @@
-import { CONFIG } from './config.js';
 import { prettyName } from './utils.js';
 
 // Todo lo que toca el DOM. Los datos remotos se insertan solo con textContent.
@@ -113,7 +112,7 @@ export function setButtonState(btn, state) {
 let demoCatalog = false;
 
 export function getSelectedDemo() { return $('demo-select').value; }
-export function getOperatorKey() { return String(CONFIG.OPERATOR_KEY ?? '').trim(); }
+export function getOperatorKey() { return $('demo-operator-key').value.trim(); }
 
 export function setDemoStatus(text, level = 'info') {
   const box = $('demo-status');

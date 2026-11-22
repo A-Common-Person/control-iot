@@ -83,6 +83,7 @@ function handleWsState(state) {
 }
 
 function startLegacy() {
+  document.getElementById('demo-operator-field').hidden = false;
   bindJoystick('joystick-move', 'move', MOVE_MAP);
   bindJoystick('joystick-tool', 'tool', TOOL_MAP);
   bindAuxButtons();
@@ -117,5 +118,5 @@ async function startAdministration() {
 
 startHealthMonitor({ onResult: ui.renderHealth });
 initFullscreen(document.getElementById('btn-fullscreen'));
-if (CONFIG.ADMINISTRACION_LOCAL) startAdministration();
+if (CONFIG.ADMINISTRACION) startAdministration();
 else startLegacy();

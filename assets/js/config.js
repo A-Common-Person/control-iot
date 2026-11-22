@@ -1,11 +1,17 @@
 // Configuración pública. Aquí NUNCA van claves, tokens ni credenciales.
 const local = ['localhost', '127.0.0.1'].includes(globalThis.location?.hostname);
-const administracionLocal = local && new URLSearchParams(globalThis.location.search).get('modo') === 'administracion';
+const origenPublico = 'https://a-common-person.github.io';
+const apiPublica = 'https://vehiculo-iot-erik.duckdns.org';
+const modo = new URLSearchParams(globalThis.location?.search).get('modo');
+const administracionLocal = local && modo === 'administracion';
+const administracionPublica = globalThis.location?.origin === origenPublico && modo !== 'clasico';
+const apiBase = administracionLocal ? 'http://127.0.0.1:8001' : apiPublica;
 
 export const CONFIG = Object.freeze({
+  ADMINISTRACION: administracionLocal || administracionPublica,
   ADMINISTRACION_LOCAL: administracionLocal,
-  API_BASE_URL: administracionLocal ? 'http://127.0.0.1:8001' : 'https://vehiculo-iot-erik.duckdns.org',
-  WS_BASE_URL: administracionLocal ? 'ws://127.0.0.1:8001/ws/vehiculos' : 'wss://vehiculo-iot-erik.duckdns.org/ws/vehiculos',
+  API_BASE_URL: apiBase,
+  WS_BASE_URL: `${apiBase.replace(/^http/, 'ws')}/ws/vehiculos`,
   VEHICLE_ID: 1,
   HEALTH_PATH: '/health',
   HEALTH_INTERVAL_MS: 15000,
@@ -17,7 +23,4 @@ export const CONFIG = Object.freeze({
   DB_NAIVE_TIME_ZONE: 'UTC',
   // Zona en la que se muestran fechas y horas.
   DISPLAY_TIME_ZONE: 'America/Mexico_City',
-  // Clave de operador (X-API-Key): se envía siempre al iniciar y cancelar DEMO.
-  // Decisión del autor para una práctica personal; no se muestra en la interfaz.
-  OPERATOR_KEY: 'ITPgalletas8293',
 });

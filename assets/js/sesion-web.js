@@ -1,6 +1,7 @@
 import { getMyVehicles, getVehicle, login, logout, setSessionToken } from './api.js';
 import { initAuthorizedDemo } from './demo.js';
 import { initDemoEditor } from './editor-demos.js';
+import { CONFIG } from './config.js';
 import { initExhibition } from './exhibicion.js';
 import { initAdminView } from './administracion.js';
 import { initTestControl } from './control-prueba.js';
@@ -36,8 +37,10 @@ export function initAdministrationPreview() {
   let seleccion = 0;
 
   document.body.dataset.preview = 'administracion';
-  byId('ind-ws').querySelector('.label').textContent = 'WebSocket local';
-  byId('ind-api').querySelector('.label').textContent = 'API FastAPI local';
+  if (CONFIG.ADMINISTRACION_LOCAL) {
+    byId('ind-ws').querySelector('.label').textContent = 'WebSocket local';
+    byId('ind-api').querySelector('.label').textContent = 'API FastAPI local';
+  }
   byId('preview-control').hidden = false;
 
   const router = initRouter({
@@ -86,7 +89,7 @@ export function initAdministrationPreview() {
     byId('session-name').textContent = nueva?.usuario.nombre ?? '';
     byId('session-role').textContent = nueva ? (rol === 'administrador' ? 'Administrador' : 'Comprador') : '';
     byId('session-unit').hidden = rol !== 'usuario';
-    ui.setVehicleName(rol === 'administrador' ? 'Inventario de pruebas' : 'Sin vehículo seleccionado');
+    ui.setVehicleName(rol === 'administrador' ? 'Inventario' : 'Sin vehículo seleccionado');
     informeLogin(mensaje, nivel);
     admin.setActive(rol === 'administrador');
     router.refresh(true);

@@ -28,7 +28,7 @@ let syncing = false;
 let queued = null;
 let timer = null;
 let failures = 0;         // fallos REST seguidos, para el reintento con espera creciente
-let monitoredId = CONFIG.ADMINISTRACION_LOCAL ? null : CONFIG.VEHICLE_ID;
+let monitoredId = CONFIG.ADMINISTRACION ? null : CONFIG.VEHICLE_ID;
 let vehicleVersion = 0;
 
 // ---------- Tarjeta del último movimiento ----------

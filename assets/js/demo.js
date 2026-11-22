@@ -165,7 +165,7 @@ export async function startSelectedDemo() {
   if (!vehicle || !demoId) return ui.setDemoStatus('Selecciona una DEMO.', 'error');
   if (isDemoRunning()) return ui.setDemoStatus('Ya hay una DEMO en ejecución.', 'error');
   const key = ui.getOperatorKey();
-  if (!key) return ui.setDemoStatus('Falta configurar la clave de operador en js/config.js.', 'error');
+  if (!key) return ui.setDemoStatus('Ingresa la clave de operador para usar las demos del modo clásico.', 'error');
 
   setRunning(true); // bloquea un segundo clic mientras responde la API
   try {
@@ -183,7 +183,7 @@ export async function cancelRunningDemo() {
   if (!vehicle) return;
   const key = ui.getOperatorKey();
   if (!key) {
-    ui.setDemoStatus('Falta configurar la clave de operador en js/config.js.', 'error');
+    ui.setDemoStatus('Ingresa la clave de operador para usar las demos del modo clásico.', 'error');
     return;
   }
   try {

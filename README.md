@@ -21,6 +21,11 @@ python .\scripts\servir_local.py
 ```
 
 Abre [Administración local](http://127.0.0.1:5500/?modo=administracion).
+
+En GitHub Pages, la rama 4.3 abre Administración y Exhibición con la API HTTPS del
+proyecto. Publica primero el backend 4.3 siguiendo la guía `docs/publicacion-4.3.md`
+del repositorio de la API. El parámetro `?modo=clasico` abre la interfaz anterior y
+requiere un backend configurado para esas rutas.
 Con una cuenta Administrador puedes registrar compradores, buscar unidades en el
 inventario y asignar o liberar una unidad. **Modelos comerciales** permite crear y
 editar el catálogo. Al seleccionar un modelo puedes cambiar sus **Comandos
@@ -254,6 +259,6 @@ Un evento WebSocket confirma que el backend lo publicó, no que los motores se m
 
 ## Seguridad
 
-- La clave de operador (`X-API-Key`, necesaria para iniciar y cancelar DEMO) está en `assets/js/config.js` y se envía siempre; no aparece en la interfaz. Es una decisión del autor para una práctica personal: sigue siendo visible en el código y en las peticiones de red, y en un sistema real requeriría autenticación propia.
+- En el modo clásico, introduce la clave de operador en el panel DEMO únicamente cuando el backend clásico esté habilitado. Para Administración, la web utiliza la sesión iniciada con correo y contraseña.
 - Los datos remotos se insertan en el DOM solo con `textContent`.
 - CORS en el backend limitado a los orígenes de la aplicación, a los métodos `GET` y `POST` y a las cabeceras `Content-Type` y `X-API-Key`.

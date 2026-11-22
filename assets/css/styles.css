@@ -156,6 +156,8 @@ body {
 }
 .panel h2::before { content: ''; width: 5px; height: 1.1em; background: var(--yellow); border-radius: 2px; }
 .demo-controls { display: grid; grid-template-columns: 1fr auto auto; gap: .5rem; }
+.demo-operator-field { margin-top: .6rem; }
+.demo-operator-field label { display: block; margin-bottom: .25rem; }
 .form-select, .form-control {
   min-height: 48px; color: var(--text); background-color: #14181c; border: 1px solid var(--line); border-radius: 10px;
 }
