@@ -32,9 +32,11 @@ Comprador, **Mis vehículos** lista las unidades asignadas y **Monitoreo** abre 
 WebSocket autorizado de la selección. Al perder la asignación, el canal se cierra y
 la página actualiza la lista. El token se conserva en memoria mientras dura la página.
 
-El ensayo usa FastAPI en el puerto 8001 y la copia de RDS. En **Control**, un comprador
-puede enviar **DETENER** y **Avanzar 250 ms** cuando el ESP8266 de su unidad aparece
-en línea. La preparación del dispositivo está en el README del backend. La URL
+El ensayo usa FastAPI en el puerto 8001 y la copia de RDS. En **Control**, cada
+cambio de dirección en los joysticks envía un pulso de 250 ms. Los mandos dependen
+del modelo y de los códigos que anuncia el ESP8266 al conectarse. Usa **DETENER**
+o **Escape** para cancelar una orden pendiente. La preparación del dispositivo está
+en el README del backend. La URL
 habitual de GitHub Pages ejecuta el modo compatible de Control y Monitoreo.
 
 ## Qué hace

@@ -439,8 +439,9 @@ body[data-preview] .layout, body[data-preview] .monitor { height: auto; overflow
 .audit-list li:last-child { border-bottom: 0; }
 .audit-list time { color: var(--muted); font-size: .82rem; }
 .preview-control { grid-column: 1 / -1; }
-body[data-preview] #view-control > :is(.console, .side) { display: none; }
-.pulse-buttons { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .8rem; }
+body[data-preview] #view-control .side > .panel,
+body[data-preview] #aux-controls :is([data-action="demo"], .toggle-badge) { display: none; }
+body[data-preview] .joystick[inert] { opacity: .5; }
 body[data-preview] .admin-view .panel h2, .preview-control h2 {
   position: static; width: auto; height: auto; margin: 0 0 .75rem; overflow: visible; clip: auto; white-space: normal;
 }

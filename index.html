@@ -71,13 +71,9 @@
   <main class="shell layout" id="view-control" aria-label="Control">
     <h1 id="h-control" class="visually-hidden" tabindex="-1">Control del vehículo</h1>
     <section class="panel preview-control" id="preview-control" aria-labelledby="h-preview-control" hidden>
-      <h2 id="h-preview-control">Control de prueba</h2>
+      <h2 id="h-preview-control">Control de la unidad</h2>
       <p class="iot-feedback" id="pulse-status" role="status">Selecciona una unidad asignada.</p>
-      <div class="pulse-buttons">
-        <button class="btn iot-primary" type="button" id="pulse-forward" disabled>Avanzar 250 ms</button>
-        <button class="btn btn-outline-light session-button" type="button" id="pulse-stop" disabled>DETENER</button>
-      </div>
-      <p class="iot-feedback" id="pulse-feedback" role="status"></p>
+      <p class="iot-feedback">Cada cambio de dirección envía un pulso de 250 ms. Para detener, usa DETENER o Escape.</p>
     </section>
     <!-- Consola: joystick izquierdo | botones centrales | joystick derecho -->
     <section class="console" aria-labelledby="h-ctrl">

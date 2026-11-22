@@ -123,8 +123,8 @@ export async function login(correo, password) {
 export const logout = () => request('/auth/logout', { method: 'POST' });
 export const getMyVehicles = () => listar('/vehiculos/mios');
 export const getTestControl = (id) => request(`/vehiculos/${vid(id)}/control/prueba`, { timeoutMs: 12000 });
-export const sendTestControl = (id, accion) => request(`/vehiculos/${vid(id)}/control/prueba`, {
-  method: 'POST', body: { accion }, timeoutMs: 20000,
+export const sendControlOrder = (id, body) => request(`/vehiculos/${vid(id)}/control/orden`, {
+  method: 'POST', body, timeoutMs: 20000,
 });
 export const getInventory = () => listar('/administracion/inventario');
 export const getModels = () => listar('/administracion/modelos');
