@@ -6,9 +6,9 @@ const state = {
 };
 
 export function setVehicle(data) {
-  state.vehicle = { id: data.id_vehiculo, nombre: data.nombre };
-  state.commands = data.comandos.filter((c) => c.activo);
-  state.demos = data.demos.filter((d) => d.activo);
+  state.vehicle = data ? { id: data.id_vehiculo, nombre: data.nombre } : null;
+  state.commands = data?.comandos?.filter((c) => c.activo) ?? [];
+  state.demos = data?.demos?.filter((d) => d.activo) ?? [];
 }
 
 export const getVehicleInfo = () => state.vehicle;

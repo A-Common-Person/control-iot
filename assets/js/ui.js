@@ -53,6 +53,7 @@ function setIndicator(id, state, text) {
 }
 
 const WS_VIEW = {
+  inactive: ['none', 'Sin suscripción'],
   open: ['ok', 'En línea'],
   connecting: ['wait', 'Conectando…'],
   reconnecting: ['wait', 'Reconectando…'],

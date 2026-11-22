@@ -8,8 +8,29 @@ los eventos que publica el backend.
 - Página publicada: https://a-common-person.github.io/control-iot/
 - API (Swagger): https://vehiculo-iot-erik.duckdns.org/docs
 
-Son dos de las tres aplicaciones del proyecto (Control, Monitoreo y Administración), en una sola página con navegación
-entre vistas. No incluye administración ni acceso directo a la base de datos, y no se conecta al microcontrolador.
+Control y Monitoreo comparten una página y se comunican con FastAPI. La rama 4.3 incorpora
+Administración, clientes y selección de unidades por sesión en el ensayo local.
+
+## Ensayo de Administración 4.3
+
+Arranca FastAPI con el script `probar_administracion.ps1` del backend y mantenlo abierto.
+Desde otra terminal, ubicada en la raíz de este frontend, sirve los archivos con Python.
+
+```powershell
+python .\scripts\servir_local.py
+```
+
+Abre [Administración local](http://127.0.0.1:5500/?modo=administracion).
+Con una cuenta Administrador puedes registrar compradores, consultar el inventario y
+asignar o liberar una unidad. La bitácora muestra los últimos cambios. Con una cuenta
+Comprador, **Mis vehículos** lista las unidades asignadas y **Monitoreo** abre el
+WebSocket autorizado de la selección. Al perder la asignación, el canal se cierra y
+la página actualiza la lista. El token se conserva en memoria mientras dura la página.
+
+El ensayo usa FastAPI en el puerto 8001 y la copia de RDS. En **Control**, un comprador
+puede enviar **DETENER** y **Avanzar 250 ms** cuando el ESP8266 de su unidad aparece
+en línea. La preparación del dispositivo está en el README del backend. La URL
+habitual de GitHub Pages ejecuta el modo compatible de Control y Monitoreo.
 
 ## Qué hace
 

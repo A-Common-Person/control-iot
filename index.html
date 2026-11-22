@@ -47,15 +47,38 @@
     <div class="hazard" aria-hidden="true"></div>
   </header>
 
+  <section class="shell session-bar" id="session-bar" aria-label="Sesión" hidden>
+    <div class="session-identity">
+      <strong id="session-name"></strong>
+      <span id="session-role"></span>
+    </div>
+    <div class="session-unit" id="session-unit" hidden>
+      <label for="vehicle-picker">Mis vehículos</label>
+      <select class="form-select" id="vehicle-picker"></select>
+      <span id="vehicle-feedback" role="status"></span>
+    </div>
+    <button type="button" class="btn btn-outline-light session-button" id="logout">Cerrar sesión</button>
+  </section>
+
   <nav class="view-nav" aria-label="Vistas de la aplicación">
     <div class="shell">
       <a class="view-tab" href="#control" data-view="control"><i class="bi bi-joystick" aria-hidden="true"></i><span>Control</span></a>
       <a class="view-tab" href="#monitoreo" data-view="monitoreo"><i class="bi bi-activity" aria-hidden="true"></i><span>Monitoreo</span></a>
+      <a class="view-tab" href="#administracion" data-view="administracion" hidden><i class="bi bi-grid" aria-hidden="true"></i><span>Administración</span></a>
     </div>
   </nav>
 
   <main class="shell layout" id="view-control" aria-label="Control">
     <h1 id="h-control" class="visually-hidden" tabindex="-1">Control del vehículo</h1>
+    <section class="panel preview-control" id="preview-control" aria-labelledby="h-preview-control" hidden>
+      <h2 id="h-preview-control">Control de prueba</h2>
+      <p class="iot-feedback" id="pulse-status" role="status">Selecciona una unidad asignada.</p>
+      <div class="pulse-buttons">
+        <button class="btn iot-primary" type="button" id="pulse-forward" disabled>Avanzar 250 ms</button>
+        <button class="btn btn-outline-light session-button" type="button" id="pulse-stop" disabled>DETENER</button>
+      </div>
+      <p class="iot-feedback" id="pulse-feedback" role="status"></p>
+    </section>
     <!-- Consola: joystick izquierdo | botones centrales | joystick derecho -->
     <section class="console" aria-labelledby="h-ctrl">
       <h2 id="h-ctrl" class="visually-hidden">Controles del vehículo</h2>
@@ -157,6 +180,87 @@
       </div>
       <p class="history-note">Solo movimientos individuales guardados en Amazon RDS; los pasos de una DEMO no se registran aquí. Hora de Ciudad de México.</p>
     </section>
+  </main>
+
+  <main class="shell access-view" id="view-login" aria-labelledby="h-login" hidden>
+    <section class="panel access-panel">
+      <h1 id="h-login" tabindex="-1">Iniciar sesión</h1>
+      <form id="login-form" class="iot-form">
+        <div>
+          <label for="login-email">Correo</label>
+          <input class="form-control" id="login-email" name="correo" type="email" autocomplete="username" maxlength="254" required>
+        </div>
+        <div>
+          <label for="login-password">Contraseña</label>
+          <input class="form-control" id="login-password" name="password" type="password" autocomplete="current-password" maxlength="128" required>
+        </div>
+        <button class="btn btn-warning iot-primary" type="submit">Iniciar sesión</button>
+      </form>
+      <p class="iot-feedback" id="login-feedback" role="status"></p>
+    </section>
+  </main>
+
+  <main class="shell admin-view" id="view-admin" aria-labelledby="h-admin" hidden>
+    <div class="admin-heading">
+      <h1 id="h-admin" tabindex="-1">Administración</h1>
+      <button type="button" class="btn btn-outline-light session-button" id="admin-refresh">Actualizar</button>
+    </div>
+    <p class="iot-feedback" id="admin-feedback" role="status"></p>
+    <dl class="admin-metrics" aria-label="Resumen del inventario">
+      <div class="panel"><dt>Unidades</dt><dd id="units-total">—</dd></div>
+      <div class="panel"><dt>Disponibles</dt><dd id="units-available">—</dd></div>
+      <div class="panel"><dt>Asignadas</dt><dd id="units-assigned">—</dd></div>
+    </dl>
+    <section class="panel" aria-labelledby="h-inventory">
+      <h2 id="h-inventory">Inventario</h2>
+      <div class="table-responsive admin-table-wrap">
+        <table class="table admin-table">
+          <thead><tr><th scope="col">Unidad</th><th scope="col">Modelo</th><th scope="col">Estado</th><th scope="col">Comprador</th></tr></thead>
+          <tbody id="inventory-rows"></tbody>
+        </table>
+      </div>
+      <form class="iot-form assignment-form" id="assignment-form">
+        <div>
+          <label for="assign-unit">Unidad</label>
+          <select class="form-select" id="assign-unit" name="unidad" required></select>
+        </div>
+        <div>
+          <label for="assign-customer">Comprador</label>
+          <select class="form-select" id="assign-customer" name="comprador" required></select>
+        </div>
+        <div class="assignment-buttons">
+          <button class="btn btn-warning iot-primary" type="submit" id="assign-save">Guardar asignación</button>
+          <button class="btn btn-outline-light session-button" type="button" id="assign-release">Liberar unidad</button>
+        </div>
+      </form>
+      <p class="iot-feedback" id="assignment-feedback" role="status"></p>
+    </section>
+    <div class="admin-columns">
+      <section class="panel" aria-labelledby="h-customers">
+        <h2 id="h-customers">Registrar comprador</h2>
+        <form class="iot-form" id="customer-form">
+          <div>
+            <label for="customer-name">Nombre</label>
+            <input class="form-control" id="customer-name" name="nombre" maxlength="120" required>
+          </div>
+          <div>
+            <label for="customer-email">Correo</label>
+            <input class="form-control" id="customer-email" name="correo" type="email" maxlength="254" required>
+          </div>
+          <div>
+            <label for="customer-password">Contraseña</label>
+            <input class="form-control" id="customer-password" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+            <small>Mínimo 12 caracteres.</small>
+          </div>
+          <button class="btn btn-warning iot-primary" type="submit">Crear comprador</button>
+        </form>
+        <p class="iot-feedback" id="customer-feedback" role="status"></p>
+      </section>
+      <section class="panel" aria-labelledby="h-audit">
+        <h2 id="h-audit">Últimos cambios</h2>
+        <ul class="audit-list" id="audit-rows"></ul>
+      </section>
+    </div>
   </main>
 
   <footer class="app-footer">

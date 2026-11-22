@@ -9,6 +9,7 @@ import { initFullscreen } from './fullscreen.js';
 import * as monitor from './monitor.js';
 import { startWebSocket } from './websocket.js';
 import { startHealthMonitor } from './health.js';
+import { initAdministrationPreview } from './sesion-web.js';
 import { friendlyMessage } from './errors.js';
 import { prettyName } from './utils.js';
 import * as ui from './ui.js';
@@ -82,18 +83,23 @@ function handleWsState(state) {
   monitor.onWsState(state);
 }
 
-bindJoystick('joystick-move', 'move', MOVE_MAP);
-bindJoystick('joystick-tool', 'tool', TOOL_MAP);
-bindAuxButtons();
+function startLegacy() {
+  bindJoystick('joystick-move', 'move', MOVE_MAP);
+  bindJoystick('joystick-tool', 'tool', TOOL_MAP);
+  bindAuxButtons();
 
-document.getElementById('btn-stop').addEventListener('click', emergencyStop);
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && getCurrentView() === 'control') emergencyStop(); });
-document.getElementById('demo-select').addEventListener('change', () => ui.updateDemoControls(isDemoRunning()));
-document.getElementById('btn-demo-start').addEventListener('click', startSelectedDemo);
-document.getElementById('btn-demo-cancel').addEventListener('click', cancelRunningDemo);
+  document.getElementById('btn-stop').addEventListener('click', emergencyStop);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && getCurrentView() === 'control') emergencyStop(); });
+  document.getElementById('demo-select').addEventListener('change', () => ui.updateDemoControls(isDemoRunning()));
+  document.getElementById('btn-demo-start').addEventListener('click', startSelectedDemo);
+  document.getElementById('btn-demo-cancel').addEventListener('click', cancelRunningDemo);
 
-startWebSocket({ vehicleId: CONFIG.VEHICLE_ID, onState: handleWsState, onEvent: handleWsEvent });
+  startWebSocket({ vehicleId: CONFIG.VEHICLE_ID, onState: handleWsState, onEvent: handleWsEvent });
+  loadVehicle();
+  initRouter({ onChange: monitor.onViewChange });
+}
+
+if (CONFIG.ADMINISTRACION_LOCAL) initAdministrationPreview();
+else startLegacy();
 startHealthMonitor({ onResult: ui.renderHealth });
-loadVehicle();
-initRouter({ onChange: monitor.onViewChange });
 initFullscreen(document.getElementById('btn-fullscreen'));

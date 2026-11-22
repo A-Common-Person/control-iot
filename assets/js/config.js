@@ -1,7 +1,11 @@
 // Configuración pública. Aquí NUNCA van claves, tokens ni credenciales.
+const local = ['localhost', '127.0.0.1'].includes(globalThis.location?.hostname);
+const administracionLocal = local && new URLSearchParams(globalThis.location.search).get('modo') === 'administracion';
+
 export const CONFIG = Object.freeze({
-  API_BASE_URL: 'https://vehiculo-iot-erik.duckdns.org',
-  WS_BASE_URL: 'wss://vehiculo-iot-erik.duckdns.org/ws/vehiculos',
+  ADMINISTRACION_LOCAL: administracionLocal,
+  API_BASE_URL: administracionLocal ? 'http://127.0.0.1:8001' : 'https://vehiculo-iot-erik.duckdns.org',
+  WS_BASE_URL: administracionLocal ? 'ws://127.0.0.1:8001/ws/vehiculos' : 'wss://vehiculo-iot-erik.duckdns.org/ws/vehiculos',
   VEHICLE_ID: 1,
   HEALTH_PATH: '/health',
   HEALTH_INTERVAL_MS: 15000,

@@ -28,6 +28,8 @@ let syncing = false;
 let queued = null;
 let timer = null;
 let failures = 0;         // fallos REST seguidos, para el reintento con espera creciente
+let monitoredId = CONFIG.ADMINISTRACION_LOCAL ? null : CONFIG.VEHICLE_ID;
+let vehicleVersion = 0;
 
 // ---------- Tarjeta del último movimiento ----------
 function noteText(stale) {
@@ -40,6 +42,10 @@ function noteText(stale) {
 }
 
 function renderCard() {
+  if (monitoredId === null) {
+    view.renderCard({ state: 'empty', note: 'Selecciona un vehículo asignado para ver su estado.' });
+    return;
+  }
   const vehicle = card?.vehicle ?? getVehicleInfo()?.nombre ?? null;
   if (!card) {
     const state = stateError ? 'error' : loaded ? 'empty' : 'loading';
@@ -74,7 +80,7 @@ function applyRestState(est) {
     card = null; // la API informa que el vehículo no tiene estado
     return;
   }
-  if (typeof est.comando !== 'string' || (est.id_vehiculo !== undefined && est.id_vehiculo !== CONFIG.VEHICLE_ID)) return;
+  if (typeof est.comando !== 'string' || (est.id_vehiculo !== undefined && est.id_vehiculo !== monitoredId)) return;
   card = {
     name: est.comando,
     code: est.codigo,
@@ -101,7 +107,7 @@ function normalizeHistory(rows) {
   rows.forEach((row) => {
     if (!row || typeof row !== 'object') return;
     if (!Number.isFinite(row.id_historial) || typeof row.comando !== 'string') return;
-    if (row.id_vehiculo !== undefined && row.id_vehiculo !== CONFIG.VEHICLE_ID) return;
+    if (row.id_vehiculo !== undefined && row.id_vehiculo !== monitoredId) return;
     byId.set(row.id_historial, row); // sin duplicados por identificador real
   });
   return [...byId.values()].sort((a, b) => b.id_historial - a.id_historial).slice(0, CONFIG.HISTORY_LIMIT);
@@ -121,6 +127,7 @@ function applyHistory(rows) {
 
 // ---------- Sincronización REST ----------
 function scheduleSync(opts, delay = CONFIG.SYNC_DEBOUNCE_MS) {
+  if (monitoredId === null) return;
   queued = {
     state: Boolean(queued?.state || opts.state),
     history: Boolean(queued?.history || opts.history),
@@ -133,20 +140,22 @@ function scheduleSync(opts, delay = CONFIG.SYNC_DEBOUNCE_MS) {
 
 async function runSync() {
   timer = null;
-  if (syncing || !queued || !visible) return; // oculto: se resincroniza al entrar en la vista
+  if (syncing || !queued || !visible || monitoredId === null) return;
   const opts = queued;
   queued = null;
   syncing = true;
   const seqAtStart = eventSeq;
+  const version = vehicleVersion;
   if (opts.history && !historyLoaded) {
     view.renderHistoryMessage('Cargando…');
     view.setHistoryStatus('Cargando…', 'wait');
   }
 
   const [st, hi] = await Promise.allSettled([
-    opts.state ? getState(CONFIG.VEHICLE_ID) : SKIP,
-    opts.history ? getHistory(CONFIG.VEHICLE_ID) : SKIP,
+    opts.state ? getState(monitoredId) : SKIP,
+    opts.history ? getHistory(monitoredId) : SKIP,
   ]);
+  if (version !== vehicleVersion) return;
 
   if (opts.state) {
     if (st.status === 'fulfilled') {
@@ -182,8 +191,9 @@ async function runSync() {
 
   // Si falló una consulta REST se reintenta solo lo que falló, con espera creciente (2, 4, 8… hasta 15 s).
   // Si mientras tanto llegaron eventos nuevos, se sincroniza enseguida.
-  const failedState = opts.state && st.status === 'rejected';
-  const failedHistory = opts.history && hi.status === 'rejected';
+  const reintentar = (result) => result.status === 'rejected' && ![401, 403].includes(result.reason?.status);
+  const failedState = opts.state && reintentar(st);
+  const failedHistory = opts.history && reintentar(hi);
   if (failedState || failedHistory) {
     failures += 1;
     const delay = queued ? 50 : Math.min(2000 * 2 ** (failures - 1), 15000);
@@ -201,10 +211,41 @@ async function runSync() {
 window.addEventListener('online', () => { if (visible) scheduleSync({ state: true, history: true }, 0); });
 
 // ---------- Entradas públicas ----------
+export function selectVehicle(id) {
+  if (monitoredId === id) return;
+  monitoredId = id;
+  vehicleVersion += 1;
+  clearTimeout(timer);
+  queued = null;
+  syncing = false;
+  failures = 0;
+  wsOpen = false;
+  everOpen = false;
+  card = null;
+  loaded = false;
+  stateError = null;
+  historyError = null;
+  history = [];
+  historyLoaded = false;
+  eventSeq = 0;
+  lastEventKey = '';
+  demoMeta = { name: null, total: null };
+  view.renderDemoLine('');
+  view.renderHistoryMessage(id === null ? 'Sin vehículo seleccionado.' : 'Cargando…');
+  view.setHistoryStatus(id === null ? 'Sin vehículo' : 'Cargando…', 'wait');
+  renderCard();
+  if (visible) scheduleSync({ state: true, history: true }, 0);
+}
+
 export function onViewChange(name) {
   visible = name === 'monitoreo';
   if (!visible) return;
   renderCard();
+  if (monitoredId === null) {
+    view.renderHistoryMessage('Sin vehículo seleccionado.');
+    view.setHistoryStatus('Sin vehículo', 'wait');
+    return;
+  }
   scheduleSync({ state: true, history: true }, 0); // al entrar siempre se resincroniza
 }
 
@@ -216,7 +257,7 @@ export function onWsState(state) {
 }
 
 export function onWsEvent(msg) {
-  if (msg.id_vehiculo !== undefined && msg.id_vehiculo !== CONFIG.VEHICLE_ID) return; // otro vehículo
+  if (monitoredId === null || (msg.id_vehiculo !== undefined && msg.id_vehiculo !== monitoredId)) return;
   const key = [msg.evento, msg.timestamp, msg.comando, msg.orden].join('|');
   if (key === lastEventKey) return; // duplicado
   lastEventKey = key;

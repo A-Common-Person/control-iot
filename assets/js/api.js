@@ -1,37 +1,50 @@
 import { CONFIG } from './config.js';
 import { ApiError, messageFromStatus } from './errors.js';
 
+let session = null;
+
+export function setSessionToken(token, onExpired) {
+  session = token ? { token, onExpired } : null;
+}
+
 // Cliente REST: único lugar con URL base, encabezados, timeout y parseo JSON.
-async function request(path, { method = 'GET', body, headers = {}, timeoutMs = CONFIG.REQUEST_TIMEOUT_MS } = {}) {
+async function request(path, {
+  method = 'GET', body, headers = {}, timeoutMs = CONFIG.REQUEST_TIMEOUT_MS, auth = true,
+} = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const currentSession = auth ? session : null;
   let response;
+  let data = null;
   try {
     response = await fetch(`${CONFIG.API_BASE_URL}${path}`, {
       method,
       headers: {
         Accept: 'application/json',
         ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...(currentSession ? { Authorization: `Bearer ${currentSession.token}` } : {}),
         ...headers,
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });
+    if (response.status === 204) return { status: response.status, data };
+    try {
+      data = await response.json();
+    } catch (err) {
+      if (err.name === 'AbortError') throw err;
+      if (response.ok) throw new ApiError('La API devolvió una respuesta no válida.', { kind: 'invalid', status: response.status });
+    }
   } catch (err) {
+    if (err instanceof ApiError) throw err;
     if (err.name === 'AbortError') throw new ApiError('Tiempo de espera agotado.', { kind: 'timeout' });
     throw new ApiError('Error de red.', { kind: 'network' });
   } finally {
     clearTimeout(timer);
   }
 
-  let data = null;
-  try {
-    data = await response.json();
-  } catch {
-    if (response.ok) throw new ApiError('La API devolvió una respuesta no válida.', { kind: 'invalid', status: response.status });
-  }
-
   if (!response.ok) {
+    if (response.status === 401 && currentSession && session === currentSession) currentSession.onExpired?.();
     throw new ApiError(messageFromStatus(response.status, data?.detail), { kind: 'http', status: response.status });
   }
   return { status: response.status, data };
@@ -72,7 +85,7 @@ export async function cancelDemo(vehicleId, apiKey) {
 }
 
 export async function getHealth() {
-  const { data } = await request(CONFIG.HEALTH_PATH, { timeoutMs: 5000 });
+  const { data } = await request(CONFIG.HEALTH_PATH, { timeoutMs: 5000, auth: false });
   return data;
 }
 
@@ -91,4 +104,42 @@ export async function getHistory(vehicleId) {
     throw new ApiError('La API devolvió un historial con formato inesperado.', { kind: 'invalid' });
   }
   return data;
+}
+
+async function listar(path) {
+  const { data } = await request(path);
+  if (!Array.isArray(data)) throw new ApiError('La API devolvió una lista no válida.', { kind: 'invalid' });
+  return data;
+}
+
+export async function login(correo, password) {
+  const { data } = await request('/auth/login', { method: 'POST', body: { correo, password }, auth: false });
+  if (!data?.access_token || !['administrador', 'usuario'].includes(data.usuario?.rol)) {
+    throw new ApiError('La API devolvió una sesión no válida.', { kind: 'invalid' });
+  }
+  return data;
+}
+
+export const logout = () => request('/auth/logout', { method: 'POST' });
+export const getMyVehicles = () => listar('/vehiculos/mios');
+export const getTestControl = (id) => request(`/vehiculos/${vid(id)}/control/prueba`, { timeoutMs: 12000 });
+export const sendTestControl = (id, accion) => request(`/vehiculos/${vid(id)}/control/prueba`, {
+  method: 'POST', body: { accion }, timeoutMs: 20000,
+});
+export const getInventory = () => listar('/administracion/inventario');
+export const getCustomers = (offset) => listar(`/administracion/clientes?limite=100&desplazamiento=${offset}`);
+export const getAudit = () => listar('/administracion/auditoria?limite=10');
+export const createCustomer = (body) => request('/administracion/clientes', { method: 'POST', body });
+
+export function assignVehicle(id, customerId, expected) {
+  return request(`/administracion/unidades/${vid(id)}/asignacion`, {
+    method: 'PUT',
+    body: { id_usuario: customerId, id_asignacion_esperada: expected },
+  });
+}
+
+export function releaseVehicle(id, expected) {
+  return request(`/administracion/unidades/${vid(id)}/asignacion?id_asignacion_esperada=${vid(expected)}`, {
+    method: 'DELETE',
+  });
 }

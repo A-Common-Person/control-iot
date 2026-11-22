@@ -6,9 +6,9 @@ import { CONFIG } from './config.js';
 // no demuestra que el vehículo físico esté conectado.
 const QUICK_ATTEMPTS = 3;   // intentos mostrados como "Reconectando"; luego "Desconectado"
 const MAX_DELAY_MS = 15000;
-const NOT_FOUND_CODE = 4404; // la API cierra con este código si el vehículo no existe
+const FINAL_CODES = [4401, 4403, 4404];
 
-export function startWebSocket({ vehicleId, onState, onEvent }) {
+export function startWebSocket({ vehicleId, token, onState, onEvent, onDenied }) {
   const url = `${CONFIG.WS_BASE_URL}/${encodeURIComponent(vehicleId)}`;
   let socket = null;
   let attempts = 0;
@@ -34,26 +34,45 @@ export function startWebSocket({ vehicleId, onState, onEvent }) {
       return;
     }
 
-    socket.addEventListener('open', () => {
+    const current = socket;
+    let authorized = !token;
+    const isCurrent = () => !stopped && socket === current;
+
+    function setOpen() {
       attempts = 0;
       onState('open');
+    }
+
+    current.addEventListener('open', () => {
+      if (!isCurrent()) return;
+      if (token) current.send(JSON.stringify({ tipo: 'autenticar', token }));
+      else setOpen();
     });
 
-    socket.addEventListener('message', (ev) => {
+    current.addEventListener('message', (ev) => {
+      if (!isCurrent()) return;
       let msg;
       try {
         msg = JSON.parse(ev.data);
       } catch {
         return; // mensaje no JSON: se ignora
       }
-      if (msg && typeof msg === 'object' && typeof msg.evento === 'string') onEvent(msg);
+      if (!msg || typeof msg.evento !== 'string') return;
+      if (msg.id_vehiculo !== undefined && msg.id_vehiculo !== vehicleId) return;
+      if (!authorized) {
+        if (msg.evento !== 'estado_actual' || msg.id_vehiculo !== vehicleId) return;
+        authorized = true;
+        setOpen();
+      }
+      onEvent(msg);
     });
 
-    socket.addEventListener('close', (ev) => {
-      if (stopped) return;
-      if (ev.code === NOT_FOUND_CODE) {
-        stopped = true;
+    current.addEventListener('close', (ev) => {
+      if (!isCurrent()) return;
+      if (FINAL_CODES.includes(ev.code)) {
+        stop();
         onState('disconnected');
+        onDenied?.(ev.code);
         return;
       }
       scheduleRetry();
@@ -62,12 +81,21 @@ export function startWebSocket({ vehicleId, onState, onEvent }) {
   }
 
   // Al volver a la pestaña, si la sesión no está viva, reintenta sin esperar.
-  document.addEventListener('visibilitychange', () => {
+  function onVisibility() {
     if (document.hidden || stopped) return;
     const alive = socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING);
     if (!alive) connect();
-  });
+  }
+
+  function stop() {
+    stopped = true;
+    clearTimeout(timer);
+    document.removeEventListener('visibilitychange', onVisibility);
+    if (socket && socket.readyState < WebSocket.CLOSING) socket.close();
+  }
+
+  document.addEventListener('visibilitychange', onVisibility);
 
   connect();
-  return { stop() { stopped = true; clearTimeout(timer); socket?.close(); } };
+  return { stop };
 }
