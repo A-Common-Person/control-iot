@@ -127,6 +127,11 @@ export const sendTestControl = (id, accion) => request(`/vehiculos/${vid(id)}/co
   method: 'POST', body: { accion }, timeoutMs: 20000,
 });
 export const getInventory = () => listar('/administracion/inventario');
+export const getModels = () => listar('/administracion/modelos');
+export const createModel = (body) => request('/administracion/modelos', { method: 'POST', body });
+export const saveModel = (id, body) => request(`/administracion/modelos/${vid(id)}`, { method: 'PUT', body });
+export const createUnit = (body) => request('/administracion/unidades', { method: 'POST', body });
+export const saveUnit = (id, body) => request(`/administracion/unidades/${vid(id)}`, { method: 'PUT', body });
 export const getCustomers = (offset) => listar(`/administracion/clientes?limite=100&desplazamiento=${offset}`);
 export const getAudit = () => listar('/administracion/auditoria?limite=10');
 export const createCustomer = (body) => request('/administracion/clientes', { method: 'POST', body });

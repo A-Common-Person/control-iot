@@ -207,12 +207,19 @@
     </div>
     <p class="iot-feedback" id="admin-feedback" role="status"></p>
     <dl class="admin-metrics" aria-label="Resumen del inventario">
+      <div class="panel"><dt>Modelos</dt><dd id="models-total">—</dd></div>
       <div class="panel"><dt>Unidades</dt><dd id="units-total">—</dd></div>
       <div class="panel"><dt>Disponibles</dt><dd id="units-available">—</dd></div>
       <div class="panel"><dt>Asignadas</dt><dd id="units-assigned">—</dd></div>
+      <div class="panel"><dt>En exhibición</dt><dd id="units-exhibition">—</dd></div>
+      <div class="panel"><dt>Compradores</dt><dd id="customers-total">—</dd></div>
     </dl>
     <section class="panel" aria-labelledby="h-inventory">
       <h2 id="h-inventory">Inventario</h2>
+      <div class="inventory-search">
+        <label for="inventory-search">Buscar por unidad, modelo o ID</label>
+        <input class="form-control" id="inventory-search" type="search" maxlength="80">
+      </div>
       <div class="table-responsive admin-table-wrap">
         <table class="table admin-table">
           <thead><tr><th scope="col">Unidad</th><th scope="col">Modelo</th><th scope="col">Estado</th><th scope="col">Comprador</th></tr></thead>
@@ -235,6 +242,68 @@
       </form>
       <p class="iot-feedback" id="assignment-feedback" role="status"></p>
     </section>
+    <div class="admin-columns">
+      <section class="panel" aria-labelledby="h-models">
+        <h2 id="h-models">Modelos comerciales</h2>
+        <form id="model-form">
+          <fieldset class="iot-form" id="model-fields" disabled>
+            <div>
+              <label for="model-picker">Modelo</label>
+              <select class="form-select" id="model-picker" name="seleccion"></select>
+            </div>
+            <div>
+              <label for="model-name">Nombre</label>
+              <input class="form-control" id="model-name" name="nombre" maxlength="80" required>
+            </div>
+            <div>
+              <label for="model-description">Descripción</label>
+              <textarea class="form-control" id="model-description" name="descripcion" rows="2" maxlength="255"></textarea>
+            </div>
+            <div class="form-check" id="model-active-field" hidden>
+              <input class="form-check-input" id="model-active" type="checkbox" name="activo" checked>
+              <label class="form-check-label" for="model-active">Modelo activo</label>
+            </div>
+            <button class="btn btn-warning iot-primary" id="model-save" type="submit">Crear modelo</button>
+          </fieldset>
+        </form>
+        <p class="iot-feedback" id="model-feedback" role="status"></p>
+      </section>
+      <section class="panel" aria-labelledby="h-units">
+        <h2 id="h-units">Unidades físicas</h2>
+        <form id="unit-form">
+          <fieldset class="iot-form" id="unit-fields" disabled>
+            <div>
+              <label for="unit-picker">Unidad</label>
+              <select class="form-select" id="unit-picker" name="seleccion"></select>
+            </div>
+            <div>
+              <label for="unit-name">Nombre</label>
+              <input class="form-control" id="unit-name" name="nombre" maxlength="80" required>
+            </div>
+            <div>
+              <label for="unit-model">Modelo comercial</label>
+              <select class="form-select" id="unit-model" name="id_modelo"></select>
+            </div>
+            <div class="unit-details">
+              <div>
+                <label for="unit-microcontroller">Microcontrolador</label>
+                <input class="form-control" id="unit-microcontroller" name="microcontrolador" maxlength="50">
+              </div>
+              <div>
+                <label for="unit-status">Estado comercial</label>
+                <select class="form-select" id="unit-status" name="estado_comercial"></select>
+              </div>
+            </div>
+            <div>
+              <label for="unit-description">Descripción</label>
+              <textarea class="form-control" id="unit-description" name="descripcion" rows="2" maxlength="255"></textarea>
+            </div>
+            <button class="btn btn-warning iot-primary" id="unit-save" type="submit">Registrar unidad</button>
+          </fieldset>
+        </form>
+        <p class="iot-feedback" id="unit-feedback" role="status"></p>
+      </section>
+    </div>
     <div class="admin-columns">
       <section class="panel" aria-labelledby="h-customers">
         <h2 id="h-customers">Registrar comprador</h2>

@@ -1,4 +1,5 @@
-import { assignVehicle, createCustomer, getAudit, getCustomers, getInventory, releaseVehicle } from './api.js';
+import { assignVehicle, createCustomer, getAudit, getCustomers, getInventory, getModels, releaseVehicle } from './api.js';
+import { initCatalogo } from './catalogo-admin.js';
 import { friendlyMessage } from './errors.js';
 import { formatDate, formatTime, parseTimestamp } from './utils.js';
 
@@ -8,7 +9,16 @@ const AUDIT = {
   'unidad.asignada': 'Unidad asignada',
   'unidad.reasignada': 'Unidad reasignada',
   'unidad.liberada': 'Unidad liberada',
+  'modelo.creado': 'Modelo creado',
+  'modelo.editado': 'Modelo actualizado',
+  'modelo.desactivado': 'Modelo desactivado',
+  'modelo.reactivado': 'Modelo reactivado',
+  'unidad.creada': 'Unidad registrada',
+  'unidad.editada': 'Unidad actualizada',
+  'unidad.desactivada': 'Unidad desactivada',
+  'unidad.reactivada': 'Unidad reactivada',
 };
+const METRICAS = ['models-total', 'units-total', 'units-available', 'units-assigned', 'units-exhibition', 'customers-total'];
 
 const node = (id) => document.getElementById(id);
 const vehicleName = (unit) => `${unit.nombre} · ${unit.id_vehiculo}`;
@@ -30,6 +40,7 @@ async function cargarCompradores() {
 export function initAdminView() {
   const inventory = node('inventory-rows');
   const audit = node('audit-rows');
+  const search = node('inventory-search');
   const unitSelect = node('assign-unit');
   const customerSelect = node('assign-customer');
   const save = node('assign-save');
@@ -40,6 +51,7 @@ export function initAdminView() {
   const status = node('admin-feedback');
   const assignmentStatus = node('assignment-feedback');
   const customerStatus = node('customer-feedback');
+  const catalogo = initCatalogo({ mutate, feedback });
 
   let unidades = [];
   let compradores = [];
@@ -59,11 +71,18 @@ export function initAdminView() {
     save.disabled = blocked || !current || !customerSelect.value;
     release.disabled = blocked || !current?.id_asignacion;
     create.disabled = blocked;
+    search.disabled = blocked;
+    catalogo.setBlocked(blocked);
   }
 
   function renderInventory() {
     const people = new Map(compradores.map((p) => [p.id_usuario, p.nombre]));
-    const filas = unidades.map((unidad) => {
+    const buscar = search.value.trim().toLocaleLowerCase('es');
+    const filtradas = unidades.filter((unidad) => (
+      `${unidad.nombre} ${unidad.modelo_comercial ?? unidad.modelo ?? ''} ${unidad.id_vehiculo}`
+        .toLocaleLowerCase('es').includes(buscar)
+    ));
+    const filas = filtradas.map((unidad) => {
       const row = document.createElement('tr');
       const celdas = [
         vehicleName(unidad), unidad.modelo_comercial ?? '—', STATUS[unidad.estado_comercial] ?? unidad.estado_comercial,
@@ -80,14 +99,20 @@ export function initAdminView() {
       const row = document.createElement('tr');
       const cell = document.createElement('td');
       cell.colSpan = 4;
-      cell.textContent = 'Sin unidades en el inventario.';
+      cell.textContent = buscar ? 'No hay unidades que coincidan con la búsqueda.' : 'Sin unidades en el inventario.';
       row.append(cell);
       filas.push(row);
     }
     inventory.replaceChildren(...filas);
+  }
+
+  function renderMetrics(modelos) {
+    node('models-total').textContent = modelos.length;
     node('units-total').textContent = unidades.length;
     node('units-available').textContent = unidades.filter((u) => u.estado_comercial === 'disponible').length;
     node('units-assigned').textContent = unidades.filter((u) => u.estado_comercial === 'asignado').length;
+    node('units-exhibition').textContent = unidades.filter((u) => u.estado_comercial === 'exhibicion').length;
+    node('customers-total').textContent = compradores.length;
   }
 
   function renderOptions() {
@@ -117,7 +142,9 @@ export function initAdminView() {
       const label = document.createElement('strong');
       const date = document.createElement('time');
       const when = parseTimestamp(event.ocurrio_en);
-      label.textContent = (AUDIT[event.accion] ?? event.accion) + (event.id_vehiculo ? ` · Unidad ${event.id_vehiculo}` : '');
+      const recurso = event.id_vehiculo ? ` · Unidad ${event.id_vehiculo}` : '';
+      const modelo = event.accion.startsWith('modelo.') && event.detalle?.nombre ? ` · ${event.detalle.nombre}` : '';
+      label.textContent = (AUDIT[event.accion] ?? event.accion) + recurso + modelo;
       date.textContent = `${formatDate(when)} · ${formatTime(when)}`;
       item.append(label, date);
       return item;
@@ -134,15 +161,17 @@ export function initAdminView() {
     if (!activo || cargando) return;
     const request = version;
     cargando = true;
-    feedback(status, 'Consultando inventario…');
+    feedback(status, 'Consultando Administración…');
     updateButtons();
     try {
-      const [units, people, events] = await Promise.all([getInventory(), cargarCompradores(), getAudit()]);
+      const [units, people, events, models] = await Promise.all([getInventory(), cargarCompradores(), getAudit(), getModels()]);
       if (version !== request) return;
       unidades = units;
       compradores = people;
       renderInventory();
+      renderMetrics(models);
       renderOptions();
+      catalogo.setData(models, units);
       renderAudit(events);
       feedback(status, '');
     } catch (error) {
@@ -180,6 +209,7 @@ export function initAdminView() {
   }
 
   refreshButton.addEventListener('click', refresh);
+  search.addEventListener('input', renderInventory);
   unitSelect.addEventListener('change', () => {
     feedback(assignmentStatus, '');
     updateSelectedCustomer();
@@ -217,8 +247,10 @@ export function initAdminView() {
       inventory.replaceChildren();
       audit.replaceChildren();
       customerForm.reset();
+      search.value = '';
+      catalogo.reset();
       [status, assignmentStatus, customerStatus].forEach((el) => feedback(el, ''));
-      ['units-total', 'units-available', 'units-assigned'].forEach((id) => { node(id).textContent = '—'; });
+      METRICAS.forEach((id) => { node(id).textContent = '—'; });
       renderOptions();
       if (activo) refresh();
     },

@@ -21,8 +21,11 @@ python .\scripts\servir_local.py
 ```
 
 Abre [Administración local](http://127.0.0.1:5500/?modo=administracion).
-Con una cuenta Administrador puedes registrar compradores, consultar el inventario y
-asignar o liberar una unidad. La bitácora muestra los últimos cambios. Con una cuenta
+Con una cuenta Administrador puedes registrar compradores, buscar unidades en el
+inventario y asignar o liberar una unidad. **Modelos comerciales** permite crear y
+editar el catálogo. En **Unidades físicas** puedes registrar o editar una unidad y
+guardarla como inactiva conservando su historial. Para cambiar el modelo o el estado
+de una unidad asignada, libérala primero. La bitácora muestra los últimos cambios. Con una cuenta
 Comprador, **Mis vehículos** lista las unidades asignadas y **Monitoreo** abre el
 WebSocket autorizado de la selección. Al perder la asignación, el canal se cierra y
 la página actualiza la lista. El token se conserva en memoria mientras dura la página.
