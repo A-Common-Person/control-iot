@@ -128,6 +128,12 @@ export const sendControlOrder = (id, body) => request(`/vehiculos/${vid(id)}/con
 });
 const editorDemosPath = (unidad) => `/vehiculos/${vid(unidad)}/demos/editor`;
 export const getDemoEditor = (unidad) => request(editorDemosPath(unidad));
+export const saveMovementPreset = (unidad, id, body) => request(
+  `${editorDemosPath(unidad)}/movimientos${id ? '/' + vid(id) : ''}`, { method: id ? 'PUT' : 'POST', body },
+);
+export const deleteMovementPreset = (unidad, id) => request(
+  `${editorDemosPath(unidad)}/movimientos/${vid(id)}`, { method: 'DELETE' },
+);
 export const getEditableDemo = (unidad, demo) => request(`${editorDemosPath(unidad)}/${vid(demo)}`);
 export const saveEditableDemo = (unidad, demo, body) => (demo
   ? request(`${editorDemosPath(unidad)}/${vid(demo)}`, { method: 'PUT', body })

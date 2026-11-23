@@ -7,6 +7,9 @@ import { formatDate, formatTime, parseTimestamp } from './utils.js';
 const STATUS = { disponible: 'Disponible', asignado: 'Asignada', exhibicion: 'En exhibición', inactivo: 'Inactiva' };
 const AUDIT = {
   'demo.creada': 'Demo creada',
+  'movimiento.creado': 'Movimiento personalizado creado',
+  'movimiento.editado': 'Movimiento personalizado actualizado',
+  'movimiento.eliminado': 'Movimiento personalizado borrado',
   'demo.editada': 'Demo actualizada',
   'cliente.creado': 'Comprador registrado',
   'unidad.asignada': 'Unidad asignada',
