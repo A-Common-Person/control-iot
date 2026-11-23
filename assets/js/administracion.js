@@ -1,11 +1,13 @@
-import { assignVehicle, createCustomer, getAudit, getCapabilities, getCustomers, getInventory, getModels, releaseVehicle } from './api.js';
+import { assignVehicle, createCustomer, getCapabilities, getCustomers, getInventory, getModels, releaseVehicle } from './api.js';
+import { initAuditoria } from './auditoria.js';
 import { initDemoEditor } from './editor-demos.js';
 import { initCatalogo } from './catalogo-admin.js';
 import { friendlyMessage } from './errors.js';
-import { formatDate, formatTime, parseTimestamp } from './utils.js';
 
 const STATUS = { disponible: 'Disponible', asignado: 'Asignada', exhibicion: 'En exhibición', inactivo: 'Inactiva' };
 const AUDIT = {
+  'cuenta.creada': 'Cuenta registrada desde consola',
+  'dispositivo.credencial_emitida': 'Credencial de dispositivo emitida',
   'demo.creada': 'Demo creada',
   'movimiento.creado': 'Movimiento personalizado creado',
   'movimiento.editado': 'Movimiento personalizado actualizado',
@@ -53,7 +55,7 @@ export function initAdminView() {
   const tablist = node('admin-tabs');
   const tabs = [...tablist.querySelectorAll('[role="tab"]')];
   const inventory = node('inventory-rows');
-  const audit = node('audit-rows');
+  const audit = initAuditoria(AUDIT);
   const search = node('inventory-search');
   const unitSelect = node('assign-unit');
   const customerSelect = node('assign-customer');
@@ -165,26 +167,6 @@ export function initAdminView() {
     updateButtons();
   }
 
-  function renderAudit(eventos) {
-    const rows = eventos.map((event) => {
-      const item = document.createElement('li');
-      const label = document.createElement('strong');
-      const date = document.createElement('time');
-      const when = parseTimestamp(event.ocurrio_en);
-      const recurso = event.id_vehiculo ? ` · Unidad ${event.id_vehiculo}` : '';
-      const modelo = event.accion.startsWith('modelo.') && event.detalle?.nombre ? ` · ${event.detalle.nombre}` : '';
-      label.textContent = (AUDIT[event.accion] ?? event.accion) + recurso + modelo;
-      date.textContent = `${formatDate(when)} · ${formatTime(when)}`;
-      item.append(label, date);
-      return item;
-    });
-    if (!rows.length) {
-      const item = document.createElement('li');
-      item.textContent = 'Sin cambios registrados.';
-      rows.push(item);
-    }
-    audit.replaceChildren(...rows);
-  }
 
   async function refresh() {
     if (!activo || cargando) return;
@@ -193,8 +175,8 @@ export function initAdminView() {
     feedback(status, 'Consultando Administración…');
     updateButtons();
     try {
-      const [units, people, events, models, capabilities] = await Promise.all([
-        getInventory(), cargarCompradores(), getAudit(), getModels(), getCapabilities(),
+      const [units, people, models, capabilities] = await Promise.all([
+        getInventory(), cargarCompradores(), getModels(), getCapabilities(),
       ]);
       if (version !== request) return;
       unidades = units;
@@ -203,7 +185,8 @@ export function initAdminView() {
       renderMetrics(models);
       renderOptions();
       catalogo.setData(models, units, capabilities);
-      renderAudit(events);
+      audit.catalogos(people, capabilities);
+      audit.cargar();
       feedback(status, '');
     } catch (error) {
       if (version === request) feedback(status, friendlyMessage(error), 'error');
@@ -240,6 +223,7 @@ export function initAdminView() {
   }
 
   function mostrarSeccion(seleccionada) {
+    audit.mostrar(seleccionada.id === 'admin-tab-audit');
     for (const tab of tabs) {
       const elegida = tab === seleccionada;
       tab.setAttribute('aria-selected', String(elegida));
@@ -305,7 +289,7 @@ export function initAdminView() {
       demos.select(null);
       compradores = [];
       inventory.replaceChildren();
-      audit.replaceChildren();
+      audit.mostrar(false);
       customerForm.reset();
       search.value = '';
       catalogo.reset();

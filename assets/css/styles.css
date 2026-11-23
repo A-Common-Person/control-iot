@@ -451,6 +451,11 @@ body[data-preview] .layout, body[data-preview] .monitor { height: auto; overflow
 .audit-list li { display: grid; gap: .15rem; padding: .55rem 0; border-bottom: 1px solid var(--line); }
 .audit-list li:last-child { border-bottom: 0; }
 .audit-list time { color: var(--muted); font-size: .82rem; }
+.audit-list li { overflow-wrap: anywhere; }
+.audit-list summary { cursor: pointer; color: var(--yellow); width: fit-content; }
+.audit-list dl { display: grid; grid-template-columns: minmax(6em, max-content) minmax(0, 1fr);
+  gap: .25rem .75rem; margin: .5rem 0; }
+.audit-list dd { margin: 0; white-space: pre-wrap; }
 .exhibition-entry { display: block; margin-top: 1rem; }
 .exhibition-view { display: grid; gap: .85rem; padding-block: 1rem 1.5rem; }
 .exhibition-heading, .exhibition-catalog-heading { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }

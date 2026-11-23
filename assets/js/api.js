@@ -170,7 +170,7 @@ export const saveUnitMovements = (id, id_modelo, habilitar, deshabilitar) => req
 });
 export const saveUnit = (id, body) => request(`/administracion/unidades/${vid(id)}`, { method: 'PUT', body });
 export const getCustomers = (offset) => listar(`/administracion/clientes?limite=100&desplazamiento=${offset}`);
-export const getAudit = () => listar('/administracion/auditoria?limite=10');
+export const getAudit = (params) => listar(`/administracion/auditoria?${new URLSearchParams(params)}`);
 export const createCustomer = (body) => request('/administracion/clientes', { method: 'POST', body });
 
 export function assignVehicle(id, customerId, expected) {
