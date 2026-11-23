@@ -408,6 +408,13 @@
         <button class="btn btn-outline-light session-button" type="button" data-demo-add>Agregar paso</button>
         <output class="iot-feedback" aria-live="polite">0 s de 30 s</output>
       </div>
+      <div>
+        <small>Guarda una demo activa de un solo paso con un nombre como «Girar izquierda 90°» para reutilizar ese movimiento.</small>
+        <label class="demo-picker">Demo de origen
+          <select class="form-select" data-movement-picker disabled></select>
+        </label>
+        <button class="btn btn-outline-light session-button" type="button" data-movement-add disabled>Insertar movimiento</button>
+      </div>
       <div class="demo-step-actions">
         <button class="btn btn-warning iot-primary" type="submit">Guardar demo</button>
         <button class="btn btn-outline-light session-button" type="button" data-demo-reset>Cancelar cambios</button>
