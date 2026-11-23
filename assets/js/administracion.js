@@ -45,6 +45,8 @@ async function cargarCompradores() {
 }
 
 export function initAdminView() {
+  const tablist = node('admin-tabs');
+  const tabs = [...tablist.querySelectorAll('[role="tab"]')];
   const inventory = node('inventory-rows');
   const audit = node('audit-rows');
   const search = node('inventory-search');
@@ -228,6 +230,32 @@ export function initAdminView() {
     }
   }
 
+  function mostrarSeccion(seleccionada) {
+    for (const tab of tabs) {
+      const elegida = tab === seleccionada;
+      tab.setAttribute('aria-selected', String(elegida));
+      tab.tabIndex = elegida ? 0 : -1;
+      node(tab.getAttribute('aria-controls')).hidden = !elegida;
+    }
+  }
+
+  tabs.forEach((tab) => tab.addEventListener('click', () => mostrarSeccion(tab)));
+  tablist.addEventListener('keydown', (event) => {
+    const actual = tabs.indexOf(event.target);
+    if (actual < 0) return;
+    const destinos = {
+      ArrowLeft: (actual + tabs.length - 1) % tabs.length,
+      ArrowRight: (actual + 1) % tabs.length,
+      Home: 0,
+      End: tabs.length - 1,
+    };
+    const siguiente = tabs[destinos[event.key]];
+    if (!siguiente) return;
+    event.preventDefault();
+    mostrarSeccion(siguiente);
+    siguiente.focus();
+  });
+
   refreshButton.addEventListener('click', refresh);
   search.addEventListener('input', renderInventory);
   unitSelect.addEventListener('change', () => {
@@ -275,7 +303,10 @@ export function initAdminView() {
       [status, assignmentStatus, customerStatus].forEach((el) => feedback(el, ''));
       METRICAS.forEach((id) => { node(id).textContent = '—'; });
       renderOptions();
-      if (activo) refresh();
+      if (activo) {
+        mostrarSeccion(tabs[0]);
+        refresh();
+      }
     },
   };
 }

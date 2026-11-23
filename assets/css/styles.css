@@ -430,10 +430,20 @@ body[data-preview] .layout, body[data-preview] .monitor { height: auto; overflow
 .admin-view .panel { min-width: 0; }
 .admin-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
 .admin-heading h1 { margin: 0; }
+.admin-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr)); gap: .5rem; }
+.admin-tab {
+  min-height: 44px; padding: .45rem .65rem; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--panel); color: var(--muted); font: 600 .94rem/1.2 var(--font-body);
+}
+.admin-tab:hover { border-color: var(--yellow); color: var(--yellow); }
+.admin-tab[aria-selected="true"] { background: var(--yellow); border-color: var(--yellow); color: #171b1f; }
+.admin-panels { min-width: 0; }
+.admin-inventory { display: grid; gap: .85rem; }
+.admin-panel[hidden] { display: none; }
 .admin-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr)); gap: .5rem; margin: 0; }
 .admin-metrics dt { color: var(--muted); font-size: .85rem; }
 .admin-metrics dd { color: var(--yellow); font: 700 1.8rem/1 var(--font-head); margin: .3rem 0 0; }
-.admin-columns, .assignment-buttons { display: grid; gap: .75rem; }
+.assignment-buttons { display: grid; gap: .75rem; }
 .admin-table { margin: 0 0 .8rem; min-width: 29rem; }
 .admin-table td, .admin-table th { padding: .55rem .5rem; }
 .admin-table-wrap { overflow-x: auto; }
@@ -475,7 +485,6 @@ body[data-preview] .admin-view :focus-visible, body[data-preview] .access-view :
 body[data-preview] .session-bar :focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
 
 @media (min-width: 768px) {
-  .admin-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .assignment-form { grid-template-columns: repeat(2, minmax(0, 1fr)) auto; align-items: end; }
   .assignment-buttons { display: flex; flex-wrap: wrap; }
 }
