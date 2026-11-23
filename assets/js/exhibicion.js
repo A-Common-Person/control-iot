@@ -2,6 +2,7 @@ import { endGuestSession, getExhibition, startGuestSession } from './api.js';
 import { CONFIG } from './config.js';
 import { friendlyMessage } from './errors.js';
 import { renderWsState } from './ui.js';
+import { createJoystick, DIRECCIONES } from './joystick.js';
 
 const DETENER = 9;
 
@@ -26,6 +27,62 @@ export function initExhibition() {
   let sesion = null;
   let contador;
   let latido;
+
+  // Copia sólo la presentación de la consola. La reserva de invitado tiene su propio canal de órdenes.
+  const consola = document.querySelector('#view-control .console').cloneNode(true);
+  consola.removeAttribute('aria-labelledby');
+  consola.setAttribute('aria-label', 'Control de exhibición');
+  consola.querySelector('h2').remove();
+  const stop = consola.querySelector('#btn-stop');
+  stop.dataset.codigo = DETENER;
+  for (const boton of consola.querySelectorAll('[data-action]')) {
+    delete boton.dataset.action;
+    boton.disabled = true;
+    boton.classList.remove('is-on');
+    boton.removeAttribute('aria-pressed');
+    boton.removeAttribute('aria-label');
+    boton.querySelector('.toggle-badge')?.remove();
+  }
+  const nombres = { 1: 'Avanzar', 2: 'Retroceder', 3: 'Girar a la derecha', 4: 'Girar a la izquierda',
+    5: 'Subir brazo', 6: 'Bajar brazo', 10: 'Diagonal izquierda', 11: 'Diagonal derecha' };
+  const sticks = Object.entries(DIRECCIONES).map(([id, direcciones]) => {
+    const root = consola.querySelector(`#${id}`);
+    for (const [dir, codigo] of Object.entries(direcciones)) {
+      const icono = root.querySelector(`.dir.${dir}`);
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = icono.className;
+      boton.setAttribute('aria-label', nombres[codigo]);
+      boton.title = nombres[codigo];
+      boton.dataset.codigo = codigo;
+      // El toque directo es un pulso; arrastrar desde el centro utiliza el joystick.
+      boton.addEventListener('pointerdown', (event) => event.stopPropagation());
+      icono.replaceWith(boton);
+    }
+    const joystick = createJoystick(root, {
+      permite: (dir) => permitido(direcciones[dir]),
+      onChange: (dir) => { if (dir) ordenar(direcciones[dir]); },
+    });
+    return { root, joystick, codigos: Object.values(direcciones) };
+  });
+  consola.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+  mandos.append(consola);
+  const botones = [...consola.querySelectorAll('button[data-codigo]')];
+  for (const boton of botones) boton.addEventListener('click', () => ordenar(Number(boton.dataset.codigo)));
+
+  function permitido(codigo) {
+    return sesion?.listo && !sesion.cerrando && Date.now() < sesion.vence && sesion.permitidos.has(codigo)
+      && (!sesion.moviendo || codigo === DETENER);
+  }
+
+  function ordenar(codigo) {
+    if (!permitido(codigo) || !enviar(sesion, { tipo: 'orden', codigo })) return;
+    if (codigo !== DETENER) {
+      sesion.moviendo = true;
+      avisar('Movimiento solicitado. Pulsa DETENER para interrumpirlo.');
+      renderMandos(sesion);
+    }
+  }
 
   function avisar(texto, nivel = '') {
     estado.textContent = texto;
@@ -99,6 +156,7 @@ export function initExhibition() {
     clearInterval(latido);
     clearInterval(contador);
     sesion = null;
+    for (const { joystick } of sticks) joystick.reset();
     panel.hidden = true;
     actual.socket?.close();
     if (activa) renderWsState('inactive');
@@ -111,9 +169,9 @@ export function initExhibition() {
   }
 
   function renderMandos(actual) {
-    for (const button of mandos.querySelectorAll('button')) {
-      button.disabled = !actual.listo || actual.cerrando || (!Number(tiempo.textContent))
-        || (actual.moviendo && Number(button.dataset.codigo) !== DETENER);
+    for (const boton of botones) boton.disabled = !permitido(Number(boton.dataset.codigo));
+    for (const { root, codigos } of sticks) {
+      root.inert = !codigos.some((codigo) => actual.permitidos.has(codigo));
     }
     terminar.disabled = actual.cerrando;
   }
@@ -163,27 +221,13 @@ export function initExhibition() {
       }
       const url = CONFIG.WS_BASE_URL.replace(/\/vehiculos$/, '/exhibicion');
       const actual = {
+        permitidos: new Set(data.comandos.map(({ codigo }) => codigo)),
         token: data.token, vence: Date.now() + data.segundos * 1000,
         socket: null, listo: false, moviendo: false, cerrando: false,
       };
       sesion = actual;
       const socket = new WebSocket(url);
       actual.socket = socket;
-      mandos.replaceChildren(...data.comandos.map(({ codigo, nombre }) => {
-        const boton = document.createElement('button');
-        boton.type = 'button';
-        boton.className = codigo === DETENER ? 'btn btn-outline-danger session-button' : 'btn btn-warning iot-primary';
-        boton.dataset.codigo = codigo;
-        boton.textContent = nombre;
-        boton.addEventListener('click', () => {
-          if (enviar(actual, { tipo: 'orden', codigo }) && codigo !== DETENER) {
-            actual.moviendo = true;
-            avisar('Movimiento solicitado. Pulsa DETENER para interrumpirlo.');
-            renderMandos(actual);
-          }
-        });
-        return boton;
-      }));
       panel.hidden = false;
       actualizarTiempo(actual);
       renderWsState('connecting');

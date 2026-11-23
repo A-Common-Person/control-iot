@@ -22,6 +22,7 @@ const AUDIT = {
   'invitado.fin': 'Prueba de exhibición finalizada',
   'unidad.creada': 'Unidad registrada',
   'unidad.movimientos_cargados': 'Movimientos del modelo agregados',
+  'unidad.movimientos_editados': 'Movimientos de la unidad actualizados',
   'unidad.editada': 'Unidad actualizada',
   'unidad.desactivada': 'Unidad desactivada',
   'unidad.reactivada': 'Unidad reactivada',

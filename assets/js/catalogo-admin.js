@@ -1,4 +1,4 @@
-import { createModel, createUnit, getMissingMovements, loadModelMovements, saveCapabilities, saveGuestCapabilities, saveModel, saveUnit } from './api.js';
+import { createModel, createUnit, getUnitMovements, saveUnitMovements, saveCapabilities, saveGuestCapabilities, saveModel, saveUnit } from './api.js';
 import { friendlyMessage } from './errors.js';
 import { prettyName } from './utils.js';
 
@@ -131,22 +131,24 @@ export function initCatalogo({ mutate, feedback, onMovementsLoaded }) {
     apply.hidden = true;
     feedback(movementFeedback, 'Consultando movimientos…');
     try {
-      const pendientes = await getMissingMovements(unitPicker.value);
+      const movimientos = await getUnitMovements(unitPicker.value);
       if (revision !== revisionMovimientos) return;
-      for (const { codigo, nombre } of pendientes) {
+      for (const { codigo, nombre, activo } of movimientos) {
         const label = document.createElement('label');
         const input = document.createElement('input');
         input.type = 'checkbox';
         input.className = 'form-check-input';
         input.value = codigo;
-        input.checked = true;
+        input.defaultChecked = activo;
+        input.checked = activo || codigo === 9;
+        input.disabled = codigo === 9;
         label.append(input, document.createTextNode(prettyName(nombre)));
         options.append(label);
       }
-      apply.hidden = !pendientes.length;
-      apply.disabled = false;
-      feedback(movementFeedback, pendientes.length ? 'Selecciona los movimientos que admite esta unidad.' :
-        'Sin movimientos pendientes. Puedes revisar los comandos habilitados en Modelos comerciales.');
+      apply.hidden = !movimientos.length;
+      actualizarGuardar();
+      feedback(movementFeedback, movimientos.length ? 'Marca o desmarca los movimientos de esta unidad. DETENER es obligatorio.' :
+        'Revisa los comandos habilitados en Modelos comerciales.');
     } catch (error) {
       if (revision === revisionMovimientos) feedback(movementFeedback, friendlyMessage(error), 'error');
     } finally {
@@ -155,19 +157,24 @@ export function initCatalogo({ mutate, feedback, onMovementsLoaded }) {
   }
 
   review.addEventListener('click', revisarMovimientos);
-  options.addEventListener('change', () => { apply.disabled = !options.querySelector('input:checked'); });
+  function actualizarGuardar() {
+    apply.disabled = ![...options.querySelectorAll('input')].some((i) => i.checked !== i.defaultChecked);
+  }
+  options.addEventListener('change', actualizarGuardar);
   movementForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const id = Number(unitPicker.value);
     const modelo = Number(unitFields.id_modelo.value);
-    const codigos = [...options.querySelectorAll('input:checked')].map((input) => Number(input.value));
-    if (movementForm.hidden || !codigos.length) return;
-    mutate(() => loadModelMovements(id, modelo, codigos), ({ data }) =>
-      data.length ? `Movimientos agregados a la unidad: ${data.length}.` : 'La unidad ya tenía los movimientos.',
+    const cambios = [...options.querySelectorAll('input')].filter((input) => input.checked !== input.defaultChecked);
+    if (movementForm.hidden || !cambios.length) return;
+    const habilitar = cambios.filter((input) => input.checked).map((input) => Number(input.value));
+    const deshabilitar = cambios.filter((input) => !input.checked).map((input) => Number(input.value));
+    mutate(() => saveUnitMovements(id, modelo, habilitar, deshabilitar), 'Movimientos de la unidad guardados.',
     unitFeedback, () => onMovementsLoaded(id));
   });
 
   function setData(nuevosModelos, nuevasUnidades, nuevosComandos = []) {
+    const editando = options.children.length && unitPicker.value;
     modelos = nuevosModelos;
     unidades = nuevasUnidades;
     catalogo = nuevosComandos;
@@ -177,6 +184,7 @@ export function initCatalogo({ mutate, feedback, onMovementsLoaded }) {
       ...unidades.map((unidad) => new Option(`${unidad.nombre} · ${unidad.id_vehiculo}`, unidad.id_vehiculo))]);
     cargarModelo();
     cargarUnidad();
+    if (editando === unitPicker.value && !movementForm.hidden) revisarMovimientos();
   }
 
   modelPicker.addEventListener('change', () => {

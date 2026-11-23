@@ -18,7 +18,12 @@ function pickDirection(dx, dy, previous) {
   return candidate;
 }
 
-export function createJoystick(root, { onChange }) {
+export const DIRECCIONES = {
+  'joystick-move': { up: 1, down: 2, left: 4, right: 3 },
+  'joystick-tool': { up: 5, down: 6, left: 10, right: 11 },
+};
+
+export function createJoystick(root, { onChange, permite = () => true }) {
   const knob = root.querySelector('.knob');
   let pointerId = null;
   let current = null;
@@ -49,8 +54,14 @@ export function createJoystick(root, { onChange }) {
     const max = rect.width * TRAVEL;
     const dist = Math.hypot(dx, dy);
     const k = dist > max ? max / dist : 1;
+    const dir = dist < max * DEADZONE ? null : pickDirection(dx, dy, current);
+    if (dir && !permite(dir)) {
+      moveKnob(0, 0);
+      setDirection(null);
+      return;
+    }
     moveKnob(dx * k, dy * k);
-    setDirection(dist < max * DEADZONE ? null : pickDirection(dx, dy, current));
+    setDirection(dir);
   }
 
   root.addEventListener('pointerdown', (e) => {
@@ -70,7 +81,7 @@ export function createJoystick(root, { onChange }) {
     const dir = KEY_TO_DIR[e.key];
     if (!dir) return;
     e.preventDefault();
-    if (e.repeat) return;
+    if (e.repeat || !permite(dir)) return;
     const [vx, vy] = DIR_VECTOR[dir];
     const reach = root.clientWidth * 0.25;
     moveKnob(vx * reach, vy * reach);

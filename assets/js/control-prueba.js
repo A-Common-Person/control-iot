@@ -1,14 +1,10 @@
 import { getTestControl, sendControlOrder } from './api.js';
 import { CONFIG } from './config.js';
 import { friendlyMessage } from './errors.js';
-import { createJoystick } from './joystick.js';
+import { createJoystick, DIRECCIONES } from './joystick.js';
 import { setAction } from './ui.js';
 
 const DETENER = 9;
-const DIRECCIONES = {
-  'joystick-move': { up: 1, down: 2, left: 4, right: 3 },
-  'joystick-tool': { up: 5, down: 6, left: 10, right: 11 },
-};
 const BOTONES = { velocidad: 12, sonido: 13, luz: 15 };
 const NOMBRES = {
   1: 'Avanzar', 2: 'Retroceder', 3: 'Girar a la derecha', 4: 'Girar a la izquierda',

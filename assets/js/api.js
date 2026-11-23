@@ -158,9 +158,9 @@ export const createModel = (body) => request('/administracion/modelos', { method
 export const saveModel = (id, body) => request(`/administracion/modelos/${vid(id)}`, { method: 'PUT', body });
 export const createUnit = (body) => request('/administracion/unidades', { method: 'POST', body });
 const rutaMovimientosModelo = (id) => `/administracion/unidades/${vid(id)}/movimientos-modelo`;
-export const getMissingMovements = (id) => listar(rutaMovimientosModelo(id));
-export const loadModelMovements = (id, id_modelo, codigos) => request(rutaMovimientosModelo(id), {
-  method: 'PUT', body: { id_modelo, codigos },
+export const getUnitMovements = (id) => listar(`${rutaMovimientosModelo(id)}/seleccion`);
+export const saveUnitMovements = (id, id_modelo, habilitar, deshabilitar) => request(`${rutaMovimientosModelo(id)}/seleccion`, {
+  method: 'PUT', body: { id_modelo, habilitar, deshabilitar },
 });
 export const saveUnit = (id, body) => request(`/administracion/unidades/${vid(id)}`, { method: 'PUT', body });
 export const getCustomers = (offset) => listar(`/administracion/clientes?limite=100&desplazamiento=${offset}`);

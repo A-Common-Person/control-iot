@@ -461,7 +461,10 @@ body[data-preview] .layout, body[data-preview] .monitor { height: auto; overflow
 .exhibition-models { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: .75rem; }
 .exhibition-units { padding: 0; margin: .7rem 0 0; list-style: none; }
 .exhibition-units li { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .6rem; border-top: 1px solid var(--line); padding: .65rem 0 0; }
-.exhibition-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .75rem; }
+.exhibition-actions { margin-bottom: .75rem; }
+.exhibition-actions .dir { border: 0; padding: .25em; background: transparent; color: var(--yellow); }
+.exhibition-actions button.dir:disabled { opacity: .35; color: var(--muted); }
+.exhibition-actions .joystick[inert] { opacity: .5; }
 .exhibition-session[hidden] { display: none; }
 .exhibition-view .panel h2 { position: static; width: auto; height: auto; margin: 0 0 .75rem; overflow: visible; clip: auto; white-space: normal; }
 #guest-countdown { color: var(--yellow); font-variant-numeric: tabular-nums; }
