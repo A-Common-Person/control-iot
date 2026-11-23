@@ -118,13 +118,12 @@ export function initDemoEditor(root, { onSave } = {}) {
   }
 
   function pintarLista() {
-    picker.replaceChildren(new Option('Nueva demo', ''), ...demos.map((demo) => (
+    const opciones = () => demos.map((demo) => (
       new Option(demo.activo ? demo.nombre : `${demo.nombre} (inactiva)`, demo.id_demo)
-    )));
+    ));
+    picker.replaceChildren(new Option('Nueva demo', ''), ...opciones());
     picker.value = seleccion?.id_demo ?? '';
-    movementPicker.replaceChildren(new Option('Selecciona una demo de un paso', ''), ...demos
-      .filter((demo) => demo.activo)
-      .map((demo) => new Option(demo.nombre, demo.id_demo)));
+    movementPicker.replaceChildren(new Option('Selecciona una demo de un paso', ''), ...opciones());
     actualizarBotonesPasos();
   }
 
@@ -192,8 +191,8 @@ export function initDemoEditor(root, { onSave } = {}) {
     try {
       const { data } = await getEditableDemo(unidad, id);
       if (revision !== solicitud) return;
-      if (!data.activo || data.pasos.length !== 1) {
-        avisar('Selecciona una demo activa que tenga un solo paso.', 'error');
+      if (data.pasos.length !== 1) {
+        avisar('Selecciona una demo que tenga un solo paso.', 'error');
         return;
       }
       const [paso] = data.pasos;
