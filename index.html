@@ -409,7 +409,6 @@
         <output class="iot-feedback" aria-live="polite">0 s de 30 s</output>
       </div>
       <div>
-        <small>Guarda una demo de un solo paso con un nombre como «Girar izquierda 90°» para reutilizar ese movimiento.</small>
         <label class="demo-picker">Demo de origen
           <select class="form-select" data-movement-picker disabled></select>
         </label>
@@ -421,6 +420,29 @@
       </div>
     </fieldset>
   </form>
+  <details class="demo-picker" data-movement-editor>
+    <summary class="btn btn-outline-light session-button">Agregar movimiento</summary>
+    <form class="mt-3" data-movement-form>
+      <fieldset class="iot-form" disabled>
+        <label>Nombre del movimiento
+          <input class="form-control" name="nombre_movimiento" maxlength="80" placeholder="Girar izquierda 90°" required>
+        </label>
+        <label>Comando base
+          <select class="form-select" name="comando_movimiento" required></select>
+        </label>
+        <label>Duración del movimiento (ms)
+          <input class="form-control" name="duracion_movimiento" type="number" min="100" max="3000" value="300" required>
+        </label>
+        <label>Pausa del movimiento (ms)
+          <input class="form-control" name="pausa_movimiento" type="number" min="0" max="3000" value="0" required>
+        </label>
+        <small>Los movimientos guardados se insertan en otras demos y quedan fuera de la lista de ejecución.</small>
+        <div class="demo-step-actions">
+          <button class="btn btn-warning iot-primary" type="submit">Guardar movimiento</button>
+        </div>
+      </fieldset>
+    </form>
+  </details>
   <p class="iot-feedback" data-demo-feedback role="status"></p>
 </template>
 

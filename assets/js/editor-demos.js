@@ -4,6 +4,9 @@ import { prettyName } from './utils.js';
 
 const MAX_PASOS = 20;
 const MAX_TOTAL_MS = 30_000;
+const DESCRIPCION_MOVIMIENTO = 'Movimiento reutilizable. Solo se usa como paso de otra demo.';
+
+const esMovimiento = (demo) => demo?.activo === false && demo.descripcion === DESCRIPCION_MOVIMIENTO;
 
 export function initDemoEditor(root, { onSave } = {}) {
   root.append(document.getElementById('demo-editor-template').content.cloneNode(true));
@@ -13,6 +16,10 @@ export function initDemoEditor(root, { onSave } = {}) {
   const add = form.querySelector('[data-demo-add]');
   const movementPicker = form.querySelector('[data-movement-picker]');
   const movementAdd = form.querySelector('[data-movement-add]');
+  const movementEditor = root.querySelector('[data-movement-editor]');
+  const movementForm = root.querySelector('[data-movement-form]');
+  const movementFields = movementForm.querySelector('fieldset');
+  const movementCommand = movementForm.elements.comando_movimiento;
   const reset = form.querySelector('[data-demo-reset]');
   const rows = form.querySelector('ol');
   const total = form.querySelector('output');
@@ -37,8 +44,20 @@ export function initDemoEditor(root, { onSave } = {}) {
     return milisegundos;
   }
 
+  function opcionesComandos() {
+    return [new Option('Selecciona un comando', ''), ...comandos.map((comando) => (
+      new Option(`${prettyName(comando.nombre)} · ${comando.codigo}`, comando.id_comando)
+    ))];
+  }
+
+  function bloquear(bloqueado) {
+    picker.disabled = fields.disabled = bloqueado;
+    movementFields.disabled = bloqueado || !comandos.length;
+  }
+
   function actualizarBotonesPasos() {
-    add.disabled = !comandos.length || pasos.length >= MAX_PASOS;
+    const limite = esMovimiento(seleccion) ? 1 : MAX_PASOS;
+    add.disabled = !comandos.length || pasos.length >= limite;
     movementPicker.disabled = add.disabled || movementPicker.options.length < 2;
     movementAdd.disabled = movementPicker.disabled || !movementPicker.value;
   }
@@ -58,9 +77,7 @@ export function initDemoEditor(root, { onSave } = {}) {
       selector.className = 'form-select';
       selector.required = true;
       selector.setAttribute('aria-label', `Comando del paso ${posicion + 1}`);
-      selector.append(new Option('Selecciona un comando', ''), ...comandos.map((comando) => (
-        new Option(`${prettyName(comando.nombre)} · ${comando.codigo}`, comando.id_comando)
-      )));
+      selector.append(...opcionesComandos());
       if (paso.id_comando && !comandos.some((comando) => comando.id_comando === paso.id_comando)) {
         selector.options[0].textContent = 'Comando anterior no habilitado';
       }
@@ -113,18 +130,27 @@ export function initDemoEditor(root, { onSave } = {}) {
     form.elements.nombre.value = demo?.nombre ?? '';
     form.elements.descripcion.value = demo?.descripcion ?? '';
     form.elements.activo.checked = demo?.activo ?? true;
+    form.elements.activo.disabled = esMovimiento(demo);
+    form.elements.descripcion.readOnly = esMovimiento(demo);
     pasos = (demo?.pasos ?? []).map((paso) => ({ ...paso }));
     pintarPasos();
   }
 
   function pintarLista() {
-    const opciones = () => demos.map((demo) => (
-      new Option(demo.activo ? demo.nombre : `${demo.nombre} (inactiva)`, demo.id_demo)
-    ));
+    const opciones = () => demos.map((demo) => {
+      const estado = esMovimiento(demo) ? ' (movimiento)' : ' (inactiva)';
+      return new Option(demo.activo ? demo.nombre : `${demo.nombre}${estado}`, demo.id_demo);
+    });
     picker.replaceChildren(new Option('Nueva demo', ''), ...opciones());
     picker.value = seleccion?.id_demo ?? '';
     movementPicker.replaceChildren(new Option('Selecciona una demo de un paso', ''), ...opciones());
     actualizarBotonesPasos();
+  }
+
+  function guardarEnLista(data) {
+    demos = [...demos.filter((demo) => demo.id_demo !== data.id_demo), data]
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es') || a.id_demo - b.id_demo);
+    pintarLista();
   }
 
   async function select(id) {
@@ -132,9 +158,12 @@ export function initDemoEditor(root, { onSave } = {}) {
     const solicitud = ++revision;
     unidad = id;
     guardando = false;
-    picker.disabled = fields.disabled = true;
+    bloquear(true);
     comandos = [];
     demos = [];
+    movementEditor.open = false;
+    movementForm.reset();
+    movementCommand.replaceChildren(...opcionesComandos());
     cargarFormulario();
     pintarLista();
     avisar(id ? 'Consultando demos…' : 'Selecciona una unidad.');
@@ -144,9 +173,10 @@ export function initDemoEditor(root, { onSave } = {}) {
       if (revision !== solicitud) return;
       demos = data.demos;
       comandos = data.comandos;
+      movementCommand.replaceChildren(...opcionesComandos());
       pintarLista();
       pintarPasos();
-      picker.disabled = fields.disabled = false;
+      bloquear(false);
       avisar(comandos.length ? '' : 'La unidad aún no tiene comandos habilitados.');
     } catch (error) {
       if (revision === solicitud) avisar(friendlyMessage(error), 'error');
@@ -161,7 +191,7 @@ export function initDemoEditor(root, { onSave } = {}) {
       return;
     }
     const solicitud = ++revision;
-    picker.disabled = fields.disabled = true;
+    bloquear(true);
     avisar('Cargando demo…');
     try {
       const { data } = await getEditableDemo(unidad, id);
@@ -173,7 +203,7 @@ export function initDemoEditor(root, { onSave } = {}) {
       picker.value = seleccion?.id_demo ?? '';
       avisar(friendlyMessage(error), 'error');
     } finally {
-      if (revision === solicitud) picker.disabled = fields.disabled = false;
+      if (revision === solicitud) bloquear(false);
     }
   });
   add.addEventListener('click', () => {
@@ -186,7 +216,7 @@ export function initDemoEditor(root, { onSave } = {}) {
     if (movementAdd.disabled || !unidad) return;
     const solicitud = ++revision;
     const id = Number(movementPicker.value);
-    picker.disabled = fields.disabled = true;
+    bloquear(true);
     avisar('Consultando el movimiento guardado…');
     try {
       const { data } = await getEditableDemo(unidad, id);
@@ -206,7 +236,7 @@ export function initDemoEditor(root, { onSave } = {}) {
     } catch (error) {
       if (revision === solicitud) avisar(friendlyMessage(error), 'error');
     } finally {
-      if (revision === solicitud) picker.disabled = fields.disabled = false;
+      if (revision === solicitud) bloquear(false);
     }
   });
   reset.addEventListener('click', () => {
@@ -216,6 +246,10 @@ export function initDemoEditor(root, { onSave } = {}) {
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!unidad || guardando) return;
+    if (esMovimiento(seleccion) && pasos.length !== 1) {
+      avisar('Un movimiento reutilizable debe tener un solo paso.', 'error');
+      return;
+    }
     if (!pasos.length || pasos.length > MAX_PASOS || actualizarTotal() > MAX_TOTAL_MS) {
       avisar('Agrega entre 1 y 20 pasos y deja la duración total en 30 s o menos.', 'error');
       return;
@@ -224,24 +258,67 @@ export function initDemoEditor(root, { onSave } = {}) {
     const datos = {
       nombre: form.elements.nombre.value.trim(),
       descripcion: form.elements.descripcion.value.trim() || null,
-      activo: form.elements.activo.checked,
+      activo: !esMovimiento(seleccion) && form.elements.activo.checked,
       pasos,
     };
-    guardando = picker.disabled = fields.disabled = true;
+    guardando = true;
+    bloquear(true);
     avisar('Guardando demo…');
     try {
       const { data } = await saveEditableDemo(unidad, seleccion?.id_demo, datos);
       if (revision !== solicitud) return;
-      demos = [...demos.filter((demo) => demo.id_demo !== data.id_demo), data]
-        .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es') || a.id_demo - b.id_demo);
       cargarFormulario(data);
-      pintarLista();
+      guardarEnLista(data);
       avisar('Demo guardada.', 'ok');
       onSave?.();
     } catch (error) {
       if (revision === solicitud) avisar(friendlyMessage(error), 'error');
     } finally {
-      if (revision === solicitud) guardando = picker.disabled = fields.disabled = false;
+      if (revision === solicitud) {
+        guardando = false;
+        bloquear(false);
+      }
+    }
+  });
+  movementForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!unidad || guardando || movementFields.disabled) return;
+    const nombre = movementForm.elements.nombre_movimiento.value.trim();
+    if (!nombre) {
+      avisar('Escribe el nombre del movimiento.', 'error');
+      return;
+    }
+    const solicitud = ++revision;
+    const movimiento = {
+      nombre,
+      descripcion: DESCRIPCION_MOVIMIENTO,
+      activo: false,
+      pasos: [{
+        id_comando: Number(movementCommand.value),
+        duracion_ms: movementForm.elements.duracion_movimiento.valueAsNumber,
+        pausa_ms: movementForm.elements.pausa_movimiento.valueAsNumber,
+      }],
+    };
+    guardando = true;
+    bloquear(true);
+    avisar('Guardando movimiento…');
+    try {
+      const { data } = await saveEditableDemo(unidad, null, movimiento);
+      if (revision !== solicitud) return;
+      guardarEnLista(data);
+      movementPicker.value = data.id_demo;
+      actualizarBotonesPasos();
+      movementForm.reset();
+      movementEditor.open = false;
+      avisar(`Movimiento «${data.nombre}» guardado en Demo de origen.`, 'ok');
+      onSave?.();
+    } catch (error) {
+      if (revision === solicitud) avisar(friendlyMessage(error), 'error');
+    } finally {
+      if (revision === solicitud) {
+        guardando = false;
+        bloquear(false);
+      }
     }
   });
   return { select };
