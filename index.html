@@ -364,6 +364,14 @@
           </fieldset>
         </form>
         <p class="iot-feedback" id="unit-feedback" role="status"></p>
+        <form id="unit-movements" hidden>
+          <fieldset class="iot-form" id="unit-movement-fields">
+            <button type="button" class="btn btn-outline-light session-button" id="unit-movement-review">Cargar movimientos del modelo</button>
+            <div class="capacity-options" id="unit-movement-options"></div>
+            <button type="submit" class="btn btn-warning iot-primary" id="unit-movement-apply" hidden>Agregar seleccionados</button>
+          </fieldset>
+          <p class="iot-feedback" id="unit-movement-feedback" role="status"></p>
+        </form>
       </section>
       <section class="panel admin-panel" id="admin-customers" role="tabpanel" aria-labelledby="admin-tab-customers" tabindex="0" hidden>
         <h2 id="h-customers">Registrar comprador</h2>
@@ -389,6 +397,7 @@
         <h2 id="h-admin-demo-editor">Demos de empresa</h2>
         <label class="demo-picker" for="demo-unit">Unidad</label>
         <select class="form-select" id="demo-unit" disabled></select>
+        <button type="button" class="btn btn-outline-light session-button" id="demo-configure-unit" hidden>Configurar movimientos de esta unidad</button>
       </section>
       <section class="panel admin-panel" id="admin-audit" role="tabpanel" aria-labelledby="admin-tab-audit" tabindex="0" hidden>
         <h2 id="h-audit">Últimos cambios</h2>

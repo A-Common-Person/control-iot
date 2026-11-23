@@ -24,6 +24,7 @@ export function initDemoEditor(root, { onSave } = {}) {
   const rows = form.querySelector('ol');
   const total = form.querySelector('output');
   const feedback = root.querySelector('[data-demo-feedback]');
+  const configurar = root.querySelector('#demo-configure-unit');
   let unidad = null;
   let revision = 0;
   let guardando = false;
@@ -153,6 +154,29 @@ export function initDemoEditor(root, { onSave } = {}) {
     pintarLista();
   }
 
+  function aplicarComandos(nuevos) {
+    comandos = nuevos;
+    const anterior = movementCommand.value;
+    movementCommand.replaceChildren(...opcionesComandos());
+    if (anterior && comandos.some((c) => String(c.id_comando) === anterior)) movementCommand.value = anterior;
+    if (configurar) configurar.hidden = comandos.some((c) => c.codigo !== 9);
+    pintarPasos();
+  }
+
+  async function actualizarComandos(id) {
+    if (unidad !== id) return;
+    const solicitud = revision;
+    try {
+      const { data } = await getDemoEditor(id);
+      if (revision !== solicitud) return;
+      aplicarComandos(data.comandos);
+      movementFields.disabled = fields.disabled || !comandos.length;
+      avisar();
+    } catch (error) {
+      if (revision === solicitud) avisar(friendlyMessage(error), 'error');
+    }
+  }
+
   async function select(id) {
     if (unidad === id && !picker.disabled) return;
     const solicitud = ++revision;
@@ -160,6 +184,7 @@ export function initDemoEditor(root, { onSave } = {}) {
     guardando = false;
     bloquear(true);
     comandos = [];
+    if (configurar) configurar.hidden = true;
     demos = [];
     movementEditor.open = false;
     movementForm.reset();
@@ -172,10 +197,8 @@ export function initDemoEditor(root, { onSave } = {}) {
       const { data } = await getDemoEditor(id);
       if (revision !== solicitud) return;
       demos = data.demos;
-      comandos = data.comandos;
-      movementCommand.replaceChildren(...opcionesComandos());
+      aplicarComandos(data.comandos);
       pintarLista();
-      pintarPasos();
       bloquear(false);
       avisar(comandos.length ? '' : 'La unidad aún no tiene comandos habilitados.');
     } catch (error) {
@@ -321,5 +344,5 @@ export function initDemoEditor(root, { onSave } = {}) {
       }
     }
   });
-  return { select };
+  return { select, actualizarComandos };
 }

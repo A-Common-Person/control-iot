@@ -1,4 +1,5 @@
-import { createModel, createUnit, saveCapabilities, saveGuestCapabilities, saveModel, saveUnit } from './api.js';
+import { createModel, createUnit, getMissingMovements, loadModelMovements, saveCapabilities, saveGuestCapabilities, saveModel, saveUnit } from './api.js';
+import { friendlyMessage } from './errors.js';
 import { prettyName } from './utils.js';
 
 const byId = (id) => document.getElementById(id);
@@ -11,7 +12,7 @@ function opciones(select, items, valor = select.value) {
   if (items.some((item) => item.value === valor)) select.value = valor;
 }
 
-export function initCatalogo({ mutate, feedback }) {
+export function initCatalogo({ mutate, feedback, onMovementsLoaded }) {
   const modelForm = byId('model-form');
   const unitForm = byId('unit-form');
   const modelPicker = byId('model-picker');
@@ -25,6 +26,12 @@ export function initCatalogo({ mutate, feedback }) {
   const guestFeedback = byId('guest-capability-feedback');
   const modelFields = modelForm.elements;
   const unitFields = unitForm.elements;
+  const movementForm = byId('unit-movements');
+  const review = byId('unit-movement-review');
+  const options = byId('unit-movement-options');
+  const apply = byId('unit-movement-apply');
+  const movementFeedback = byId('unit-movement-feedback');
+  let revisionMovimientos = 0;
   let modelos = [];
   let unidades = [];
   let catalogo = [];
@@ -103,7 +110,62 @@ export function initCatalogo({ mutate, feedback }) {
     unitFields.estado_comercial.disabled = asignada;
     actualizarModeloObligatorio();
     byId('unit-save').textContent = actual ? 'Guardar unidad' : 'Registrar unidad';
+    reiniciarMovimientos();
   }
+
+  function reiniciarMovimientos() {
+    revisionMovimientos++;
+    const unidad = unidades.find((u) => String(u.id_vehiculo) === unitPicker.value);
+    movementForm.hidden = !unidad?.activo || unidad.estado_comercial === 'inactivo' ||
+      Number(unitFields.id_modelo.value) !== unidad.id_modelo || unitFields.estado_comercial.value !== unidad.estado_comercial;
+    options.replaceChildren();
+    apply.hidden = true;
+    review.disabled = false;
+    feedback(movementFeedback, '');
+  }
+
+  async function revisarMovimientos() {
+    const revision = ++revisionMovimientos;
+    review.disabled = true;
+    options.replaceChildren();
+    apply.hidden = true;
+    feedback(movementFeedback, 'Consultando movimientos…');
+    try {
+      const pendientes = await getMissingMovements(unitPicker.value);
+      if (revision !== revisionMovimientos) return;
+      for (const { codigo, nombre } of pendientes) {
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.className = 'form-check-input';
+        input.value = codigo;
+        input.checked = true;
+        label.append(input, document.createTextNode(prettyName(nombre)));
+        options.append(label);
+      }
+      apply.hidden = !pendientes.length;
+      apply.disabled = false;
+      feedback(movementFeedback, pendientes.length ? 'Selecciona los movimientos que admite esta unidad.' :
+        'Sin movimientos pendientes. Puedes revisar los comandos habilitados en Modelos comerciales.');
+    } catch (error) {
+      if (revision === revisionMovimientos) feedback(movementFeedback, friendlyMessage(error), 'error');
+    } finally {
+      if (revision === revisionMovimientos) review.disabled = false;
+    }
+  }
+
+  review.addEventListener('click', revisarMovimientos);
+  options.addEventListener('change', () => { apply.disabled = !options.querySelector('input:checked'); });
+  movementForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const id = Number(unitPicker.value);
+    const modelo = Number(unitFields.id_modelo.value);
+    const codigos = [...options.querySelectorAll('input:checked')].map((input) => Number(input.value));
+    if (movementForm.hidden || !codigos.length) return;
+    mutate(() => loadModelMovements(id, modelo, codigos), ({ data }) =>
+      data.length ? `Movimientos agregados a la unidad: ${data.length}.` : 'La unidad ya tenía los movimientos.',
+    unitFeedback, () => onMovementsLoaded(id));
+  });
 
   function setData(nuevosModelos, nuevasUnidades, nuevosComandos = []) {
     modelos = nuevosModelos;
@@ -128,6 +190,8 @@ export function initCatalogo({ mutate, feedback }) {
     cargarUnidad();
   });
   unitFields.estado_comercial.addEventListener('change', actualizarModeloObligatorio);
+  unitFields.estado_comercial.addEventListener('change', reiniciarMovimientos);
+  unitFields.id_modelo.addEventListener('change', reiniciarMovimientos);
 
   byId('capacity-form').addEventListener('submit', (event) => {
     event.preventDefault();
@@ -170,9 +234,18 @@ export function initCatalogo({ mutate, feedback }) {
 
   return {
     setData,
+    revisarUnidad(id) {
+      unitPicker.value = String(id);
+      unitPicker.dispatchEvent(new Event('change'));
+      if (!movementForm.hidden) {
+        review.focus();
+        revisarMovimientos();
+      }
+    },
     setBlocked(blocked) {
       byId('model-fields').disabled = blocked;
       byId('unit-fields').disabled = blocked;
+      byId('unit-movement-fields').disabled = blocked;
       byId('capacity-fields').disabled = blocked;
       byId('guest-capability-fields').disabled = blocked;
     },

@@ -21,6 +21,7 @@ const AUDIT = {
   'invitado.inicio': 'Prueba de exhibición iniciada',
   'invitado.fin': 'Prueba de exhibición finalizada',
   'unidad.creada': 'Unidad registrada',
+  'unidad.movimientos_cargados': 'Movimientos del modelo agregados',
   'unidad.editada': 'Unidad actualizada',
   'unidad.desactivada': 'Unidad desactivada',
   'unidad.reactivada': 'Unidad reactivada',
@@ -60,9 +61,13 @@ export function initAdminView() {
   const status = node('admin-feedback');
   const assignmentStatus = node('assignment-feedback');
   const customerStatus = node('customer-feedback');
-  const catalogo = initCatalogo({ mutate, feedback });
   const demoPicker = node('demo-unit');
   const demos = initDemoEditor(node('admin-demo-editor'), { onSave: refresh });
+  const catalogo = initCatalogo({ mutate, feedback, onMovementsLoaded: demos.actualizarComandos });
+  node('demo-configure-unit').addEventListener('click', () => {
+    mostrarSeccion(node('admin-tab-units'));
+    catalogo.revisarUnidad(Number(demoPicker.value));
+  });
   demoPicker.addEventListener('change', () => demos.select(Number(demoPicker.value) || null));
 
   let unidades = [];
@@ -213,10 +218,10 @@ export function initAdminView() {
     feedback(target, 'Guardando…');
     updateButtons();
     try {
-      await operation();
+      const resultado = await operation();
       if (version !== request) return;
       onSuccess?.();
-      feedback(target, message, 'ok');
+      feedback(target, typeof message === 'function' ? message(resultado) : message, 'ok');
       await refresh();
     } catch (error) {
       if (version !== request) return;
