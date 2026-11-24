@@ -1,4 +1,4 @@
-import { getMyVehicles, getVehicle, login, logout, setSessionToken } from './api.js';
+import { getMyVehicles, getTestControl, getVehicle, login, logout, setSessionToken } from './api.js';
 import { initAuthorizedDemo } from './demo.js';
 import { initDemoEditor } from './editor-demos.js';
 import { CONFIG } from './config.js';
@@ -50,7 +50,14 @@ export function initAdministrationPreview() {
   }
   const vehiclePicker = byId('vehicle-picker');
   const vehicleFeedback = byId('vehicle-feedback');
-  const admin = initAdminView();
+  const admin = initAdminView({ probarUnidad: async (vehiculo) => {
+    const actual = sesion;
+    const { data } = await getTestControl(vehiculo.id_vehiculo);
+    if (sesion !== actual || sesion?.usuario.rol !== 'administrador') return;
+    if (!data.dispositivo_en_linea) throw new Error('El dispositivo está desconectado.');
+    await elegirUnidad(vehiculo);
+    window.location.hash = 'control';
+  } });
   const exhibition = initExhibition();
   const playback = initAuthorizedDemo({ onActive: (active) => testControl.setDemoActive(active) });
   const testControl = initTestControl({
@@ -77,8 +84,14 @@ export function initAdministrationPreview() {
       monitor.onViewChange(vista);
       exhibition.setActive(vista === 'invitado');
       testControl.show(vista === 'control');
+      if (vista === 'administracion' && unidad !== null) {
+        detenerMonitoreo();
+        ui.setVehicleName('Inventario');
+        router.refresh();
+      }
     },
-    allowed: () => VISTAS[sesion?.usuario.rol] ?? ['acceso', 'invitado'],
+    allowed: () => sesion?.usuario.rol === 'administrador' && unidad !== null
+      ? ['administracion', 'control'] : VISTAS[sesion?.usuario.rol] ?? ['acceso', 'invitado'],
   });
 
   function informeLogin(mensaje, nivel = '') {
@@ -132,6 +145,10 @@ export function initAdministrationPreview() {
     }
     detenerMonitoreo();
     ui.setVehicleName('Sin vehículo seleccionado');
+    if (sesion?.usuario.rol === 'administrador') {
+      window.location.hash = 'administracion';
+      return;
+    }
     cargarVehiculos('La unidad anterior ya no está disponible para esta sesión.');
   }
 
@@ -148,9 +165,10 @@ export function initAdministrationPreview() {
     ui.setVehicleName(`${vehiculo.nombre} · ID ${unidad}`);
     monitor.selectVehicle(unidad);
     playback.select(unidad);
-    testControl.select(unidad, sesion.access_token);
-    demoPanel.hidden = false;
-    demos.select(unidad);
+    const comprador = sesion.usuario.rol === 'usuario';
+    testControl.select(unidad, sesion.access_token, !comprador);
+    demoPanel.hidden = !comprador;
+    if (comprador) demos.select(unidad);
     canal = startWebSocket({
       vehicleId: unidad,
       token: sesion.access_token,

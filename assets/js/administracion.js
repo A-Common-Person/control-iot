@@ -51,7 +51,7 @@ async function cargarCompradores() {
   return compradores;
 }
 
-export function initAdminView() {
+export function initAdminView({ probarUnidad }) {
   const tablist = node('admin-tabs');
   const tabs = [...tablist.querySelectorAll('[role="tab"]')];
   const inventory = node('inventory-rows');
@@ -116,12 +116,31 @@ export function initAdminView() {
         cell.textContent = value;
         row.append(cell);
       });
+      const operacion = document.createElement('td');
+      if (unidad.activo && !unidad.id_propietario && ['disponible', 'exhibicion'].includes(unidad.estado_comercial)) {
+        const probar = document.createElement('button');
+        probar.type = 'button';
+        probar.className = 'btn btn-outline-light btn-sm';
+        probar.textContent = 'Probar unidad';
+        probar.addEventListener('click', async () => {
+          probar.disabled = true;
+          try {
+            await probarUnidad(unidad);
+          } catch (error) {
+            feedback(status, error.message, 'error');
+          } finally {
+            probar.disabled = false;
+          }
+        });
+        operacion.append(probar);
+      }
+      row.append(operacion);
       return row;
     });
     if (!filas.length) {
       const row = document.createElement('tr');
       const cell = document.createElement('td');
-      cell.colSpan = 4;
+      cell.colSpan = 5;
       cell.textContent = buscar ? 'No hay unidades que coincidan con la búsqueda.' : 'Sin unidades en el inventario.';
       row.append(cell);
       filas.push(row);

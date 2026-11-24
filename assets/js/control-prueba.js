@@ -30,6 +30,7 @@ export function initTestControl({ onDemoState, onDemoStop, onManualBusy } = {}) 
   let lastAction = 0;
   const pending = new Map();
   let token = null;
+  let pruebaAdmin = false;
   let mantenido = false;
   let socket = null;
   let canalListo = false;
@@ -39,7 +40,7 @@ export function initTestControl({ onDemoState, onDemoStop, onManualBusy } = {}) 
   let demoActive = false;
 
   function renderButtons() {
-    const usable = visible && link;
+    const usable = visible && link && (!pruebaAdmin || canalListo);
     stop.disabled = !demoActive && (!usable || !allowed.has(DETENER) || pending.has('detener'));
     for (const button of aux) {
       button.disabled = !usable || !allowed.has(BOTONES[button.dataset.action]) || pending.size !== 0 || !!gesto || demoActive;
@@ -57,7 +58,7 @@ export function initTestControl({ onDemoState, onDemoStop, onManualBusy } = {}) 
       link = data?.dispositivo_en_linea ? data.id_enlace : null;
       allowed = new Set(data?.codigos_habilitados ?? []);
       mantenido = data?.mantenido === true;
-      onDemoState?.(data);
+      onDemoState?.(pruebaAdmin && !canalListo ? null : data);
       if (gesto && (!link || gesto.enlace !== link || !allowed.has(direccion?.codigo))) {
         direccion = null;
         soltar();
@@ -254,12 +255,13 @@ export function initTestControl({ onDemoState, onDemoStop, onManualBusy } = {}) 
   renderButtons();
 
   return {
-    select(id, accessToken = null) {
+    select(id, accessToken = null, administrador = false) {
       if (unit === id && token === accessToken) return;
       if (pending.has('movimiento')) send(DETENER);
       cerrarCanal();
       unit = id;
       token = accessToken;
+      pruebaAdmin = administrador;
       lastAction += 1;
       pending.clear();
       setAction('Usa los mandos de la unidad seleccionada.');
