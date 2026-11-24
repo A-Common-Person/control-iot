@@ -108,7 +108,7 @@ async function startAdministration() {
     document.querySelectorAll('main').forEach((view) => { view.hidden = view.id !== 'view-login'; });
     document.querySelector('.view-nav').hidden = true;
     document.getElementById('session-bar').hidden = true;
-    document.querySelector('#login-form button[type="submit"]').disabled = true;
+    document.querySelectorAll('#view-login [type="submit"]').forEach(button => { button.disabled = true; });
     const feedback = document.getElementById('login-feedback');
     feedback.textContent = 'No se pudo cargar Administración. Recarga la página con Ctrl+F5.';
     feedback.dataset.level = 'error';

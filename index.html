@@ -186,19 +186,34 @@
   </main>
 
   <main class="shell access-view" id="view-login" aria-labelledby="h-login" hidden>
-    <section class="panel access-panel">
+    <section class="access-panel">
       <h1 id="h-login" tabindex="-1">Iniciar sesión</h1>
-      <form id="login-form" class="iot-form">
-        <div>
-          <label for="login-email">Correo</label>
-          <input class="form-control" id="login-email" name="correo" type="email" autocomplete="username" maxlength="254" required>
-        </div>
-        <div>
-          <label for="login-password">Contraseña</label>
-          <input class="form-control" id="login-password" name="password" type="password" autocomplete="current-password" maxlength="128" required>
-        </div>
-        <button class="btn btn-warning iot-primary" type="submit">Iniciar sesión</button>
-      </form>
+      <div class="access-cards">
+        <form class="panel iot-form" id="login-form" data-perfil="administrador" aria-labelledby="login-heading">
+          <h2 id="login-heading">Administrador</h2>
+          <div>
+            <label for="login-email">Correo</label>
+            <input class="form-control" id="login-email" name="correo" type="email" autocomplete="section-login username" maxlength="254" required>
+          </div>
+          <div>
+            <label for="login-password">Contraseña</label>
+            <input class="form-control" id="login-password" name="password" type="password" autocomplete="section-login current-password" maxlength="128" required>
+          </div>
+          <button class="btn btn-warning iot-primary" type="submit">Iniciar sesión</button>
+        </form>
+        <form class="panel iot-form" id="buyer-form" data-perfil="comprador" aria-labelledby="buyer-heading">
+          <h2 id="buyer-heading">Comprador</h2>
+          <div>
+            <label for="buyer-email">Correo</label>
+            <input class="form-control" id="buyer-email" name="correo" type="email" autocomplete="section-buyer username" maxlength="254" required>
+          </div>
+          <div>
+            <label for="buyer-password">Contraseña</label>
+            <input class="form-control" id="buyer-password" name="password" type="password" autocomplete="section-buyer current-password" maxlength="128" required>
+          </div>
+          <button class="btn btn-warning iot-primary" type="submit">Iniciar sesión</button>
+        </form>
+      </div>
       <p class="iot-feedback" id="login-feedback" role="status"></p>
       <a class="btn btn-outline-light session-button exhibition-entry" href="#invitado">Entrar como invitado</a>
     </section>

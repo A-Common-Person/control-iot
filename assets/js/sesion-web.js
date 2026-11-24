@@ -16,9 +16,24 @@ const byId = (id) => document.getElementById(id);
 const VISTAS = { administrador: ['administracion'], usuario: ['monitoreo', 'control'] };
 
 export function initAdministrationPreview() {
-  const loginForm = byId('login-form');
-  const loginButton = loginForm.querySelector('button[type="submit"]');
+  const formularios = [...document.querySelectorAll('#view-login form[data-perfil]')];
+  const botones = formularios.map(form => form.querySelector('[type="submit"]'));
   const loginFeedback = byId('login-feedback');
+  if (window.opener && new URLSearchParams(location.search).has('presentacion')) {
+    const recibir = (event) => {
+      if (event.source !== window.opener || event.origin !== 'null' ||
+          event.data?.tipo !== 'perfiles-presentacion') return;
+      for (const form of formularios) {
+        const perfil = event.data.perfiles?.[form.dataset.perfil];
+        if (typeof perfil?.correo !== 'string' || typeof perfil.password !== 'string') continue;
+        form.elements.correo.defaultValue = perfil.correo;
+        form.elements.password.defaultValue = perfil.password;
+      }
+      window.removeEventListener('message', recibir);
+    };
+    window.addEventListener('message', recibir);
+    window.opener.postMessage('solicitar-perfiles', '*');
+  }
   const vehiclePicker = byId('vehicle-picker');
   const vehicleFeedback = byId('vehicle-feedback');
   const admin = initAdminView();
@@ -186,10 +201,11 @@ export function initAdministrationPreview() {
     vehicleFeedback.textContent = '';
     elegirUnidad(asignados.find((v) => v.id_vehiculo === Number(vehiclePicker.value)));
   });
-  loginForm.addEventListener('submit', async (event) => {
+  async function enviarAcceso(event) {
+    const loginForm = event.currentTarget;
     event.preventDefault();
-    if (loginButton.disabled) return;
-    loginButton.disabled = true;
+    if (botones.some(boton => boton.disabled)) return;
+    botones.forEach(boton => { boton.disabled = true; });
     informeLogin('Conectando…');
     const { correo, password } = Object.fromEntries(new FormData(loginForm));
     loginForm.elements.password.value = '';
@@ -201,9 +217,10 @@ export function initAdministrationPreview() {
       informeLogin(friendlyMessage(error), 'error');
       loginForm.elements.password.focus();
     } finally {
-      loginButton.disabled = false;
+      botones.forEach(boton => { boton.disabled = false; });
     }
-  });
+  }
+  formularios.forEach(form => form.addEventListener('submit', enviarAcceso));
   byId('logout').addEventListener('click', async () => {
     const cerrar = logout();
     cambiarSesion(null, 'Sesión cerrada.', 'ok');
