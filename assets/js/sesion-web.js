@@ -15,10 +15,24 @@ import { startWebSocket } from './websocket.js';
 const byId = (id) => document.getElementById(id);
 const VISTAS = { administrador: ['administracion'], usuario: ['monitoreo', 'control'] };
 
+const PERFILES = {
+  administrador: { correo: 'erik.qglz@gmail.com', password: '012345678910' },
+  comprador: { correo: 'abcd@gmail.com', password: '012345678910' },
+};
+
 export function initAdministrationPreview() {
   const formularios = [...document.querySelectorAll('#view-login form[data-perfil]')];
   const botones = formularios.map(form => form.querySelector('[type="submit"]'));
   const loginFeedback = byId('login-feedback');
+
+  for (const form of formularios) {
+    const perfil = PERFILES[form.dataset.perfil];
+    if (!perfil) continue;
+    form.elements.correo.defaultValue = perfil.correo;
+    form.elements.password.defaultValue = perfil.password;
+    form.reset();
+  }
+
   if (window.opener && new URLSearchParams(location.search).has('presentacion')) {
     const recibir = (event) => {
       if (event.source !== window.opener || event.origin !== 'null' ||
@@ -215,6 +229,7 @@ export function initAdministrationPreview() {
       cambiarSesion(nueva);
     } catch (error) {
       informeLogin(friendlyMessage(error), 'error');
+      loginForm.elements.password.value = loginForm.elements.password.defaultValue;
       loginForm.elements.password.focus();
     } finally {
       botones.forEach(boton => { boton.disabled = false; });
