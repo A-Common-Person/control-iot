@@ -13,7 +13,7 @@ import * as ui from './ui.js';
 import { startWebSocket } from './websocket.js';
 
 const byId = (id) => document.getElementById(id);
-const VISTAS = { administrador: ['administracion'], usuario: ['monitoreo', 'control'] };
+const VISTAS = { administrador: ['administracion'], usuario: ['monitoreo', 'control', 'demos'] };
 
 const PERFILES = {
   administrador: { correo: 'erik.qglz@gmail.com', password: '012345678910' },

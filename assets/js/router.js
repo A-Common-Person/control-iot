@@ -2,6 +2,7 @@
 const VIEWS = {
   control: { id: 'view-control', title: 'Control IoT · Excavadora' },
   monitoreo: { id: 'view-monitor', title: 'Monitoreo IoT · Excavadora' },
+  demos: { id: 'view-demos', title: 'Mis demos · Control IoT' },
   administracion: { id: 'view-admin', title: 'Administración · IoT' },
   acceso: { id: 'view-login', title: 'Iniciar sesión · IoT' },
   invitado: { id: 'view-exhibition', title: 'Exhibición · IoT' },

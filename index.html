@@ -64,6 +64,7 @@
     <div class="shell">
       <a class="view-tab" href="#control" data-view="control"><i class="bi bi-joystick" aria-hidden="true"></i><span>Control</span></a>
       <a class="view-tab" href="#monitoreo" data-view="monitoreo"><i class="bi bi-activity" aria-hidden="true"></i><span>Monitoreo</span></a>
+      <a class="view-tab" href="#demos" data-view="demos" hidden><i class="bi bi-collection-play" aria-hidden="true"></i><span>Mis demos</span></a>
       <a class="view-tab" href="#administracion" data-view="administracion" hidden><i class="bi bi-grid" aria-hidden="true"></i><span>Administración</span></a>
     </div>
   </nav>
@@ -135,9 +136,13 @@
         <div class="action-bar" id="event-bar" role="status" aria-live="off">Evento WebSocket: esperando…</div>
       </div>
     </aside>
+  </main>
+
+  <main class="shell buyer-demos-view" id="view-demos" aria-label="Mis demos" hidden>
     <section class="panel demo-editor" id="buyer-demo-editor" aria-labelledby="h-buyer-demo-editor" hidden>
       <h2 id="h-buyer-demo-editor">Mis demos</h2>
     </section>
+    <p id="buyer-demo-empty">Selecciona una unidad asignada para editar tus demos.</p>
   </main>
 
   <main class="shell monitor" id="view-monitor" aria-label="Monitoreo" hidden>

@@ -17,7 +17,7 @@ Arranca FastAPI con el script `probar_administracion.ps1` del backend y mantenlo
 Desde otra terminal, ubicada en la raíz de este frontend, sirve los archivos con Python.
 
 ```powershell
-python .\scripts\servir_local.py
+python .\assets\scripts\servir_local.py
 ```
 
 Abre [Administración local](http://127.0.0.1:5500/?modo=administracion).
