@@ -13,6 +13,7 @@ const AUDIT = {
   'movimiento.editado': 'Movimiento personalizado actualizado',
   'movimiento.eliminado': 'Movimiento personalizado borrado',
   'demo.editada': 'Demo actualizada',
+  'demo.eliminada': 'Demo eliminada',
   'cliente.creado': 'Comprador registrado',
   'unidad.asignada': 'Unidad asignada',
   'unidad.reasignada': 'Unidad reasignada',

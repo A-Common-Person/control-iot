@@ -55,33 +55,50 @@ export function initExhibition() {
       boton.setAttribute('aria-label', nombres[codigo]);
       boton.title = nombres[codigo];
       boton.dataset.codigo = codigo;
-      // El toque directo es un pulso; arrastrar desde el centro utiliza el joystick.
-      boton.addEventListener('pointerdown', (event) => event.stopPropagation());
+      boton.addEventListener('keydown', (event) => {
+        if (event.key !== ' ' && event.key !== 'Enter') return;
+        event.preventDefault();
+        if (!event.repeat) mantener(codigo);
+      });
+      boton.addEventListener('keyup', (event) => {
+        if (event.key === ' ' || event.key === 'Enter') soltar();
+      });
+      boton.addEventListener('blur', soltar);
       icono.replaceWith(boton);
     }
     const joystick = createJoystick(root, {
       permite: (dir) => permitido(direcciones[dir]),
-      onChange: (dir) => { if (dir) ordenar(direcciones[dir]); },
+      onChange: (dir) => { if (dir) mantener(direcciones[dir]); else soltar(); },
     });
     return { root, joystick, codigos: Object.values(direcciones) };
   });
   consola.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
   mandos.append(consola);
   const botones = [...consola.querySelectorAll('button[data-codigo]')];
-  for (const boton of botones) boton.addEventListener('click', () => ordenar(Number(boton.dataset.codigo)));
+  stop.addEventListener('click', () => {
+    if (permitido(DETENER)) {
+      sesion.direccion = null;
+      enviar(sesion, { tipo: 'orden', codigo: DETENER });
+      sticks.forEach(({ joystick }) => joystick.reset());
+    }
+  });
+  window.addEventListener('blur', soltar);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) soltar(); });
 
   function permitido(codigo) {
-    return sesion?.listo && !sesion.cerrando && Date.now() < sesion.vence && sesion.permitidos.has(codigo)
-      && (!sesion.moviendo || codigo === DETENER);
+    return sesion?.listo && !sesion.cerrando && Date.now() < sesion.vence && sesion.permitidos.has(codigo);
   }
 
-  function ordenar(codigo) {
-    if (!permitido(codigo) || !enviar(sesion, { tipo: 'orden', codigo })) return;
-    if (codigo !== DETENER) {
-      sesion.moviendo = true;
-      avisar('Movimiento solicitado. Pulsa DETENER para interrumpirlo.');
-      renderMandos(sesion);
-    }
+  function soltar() {
+    if (!sesion?.direccion) return;
+    sesion.direccion = null;
+    enviar(sesion, { tipo: 'orden', codigo: DETENER });
+  }
+
+  function mantener(codigo) {
+    if (!permitido(codigo) || sesion.direccion === codigo) return;
+    soltar();
+    if (enviar(sesion, { tipo: 'mantener', codigo })) sesion.direccion = codigo;
   }
 
   function avisar(texto, nivel = '') {
@@ -223,7 +240,7 @@ export function initExhibition() {
       const actual = {
         permitidos: new Set(data.comandos.map(({ codigo }) => codigo)),
         token: data.token, vence: Date.now() + data.segundos * 1000,
-        socket: null, listo: false, moviendo: false, cerrando: false,
+        socket: null, listo: false, direccion: null, cerrando: false,
       };
       sesion = actual;
       const socket = new WebSocket(url);
@@ -241,15 +258,16 @@ export function initExhibition() {
         if (msg.tipo === 'lista') {
           actual.listo = true;
           renderWsState('open');
-          if (!actual.cerrando) avisar('Cada movimiento dura hasta 2 segundos por toque.');
+          if (!actual.cerrando) avisar('Mantén la dirección para mover el vehículo. Suéltala para detenerlo.');
           latido = setInterval(() => enviar(actual, { tipo: 'latido' }), 2000);
         } else if (msg.tipo === 'finalizada') {
           mostrarCierre(msg);
           limpiar(actual);
           cargar();
           return;
-        } else if (['pulso_confirmado', 'detenido', 'rechazada'].includes(msg.tipo)) {
-          actual.moviendo = false;
+        } else if (msg.tipo === 'movimiento_aplicado') {
+          if (actual.direccion === msg.codigo) avisar('Movimiento confirmado. Suelta para detener.', 'ok');
+        } else if (['detenido', 'rechazada'].includes(msg.tipo) && (!actual.direccion || msg.tipo === 'rechazada')) {
           if (!actual.cerrando) avisar(msg.mensaje ?? 'DETENER confirmado.', msg.tipo === 'rechazada' ? 'error' : 'ok');
         }
         actualizarTiempo(actual, msg.segundos);

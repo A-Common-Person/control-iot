@@ -1,4 +1,4 @@
-import { deleteMovementPreset, getDemoEditor, getEditableDemo, saveEditableDemo, saveMovementPreset } from './api.js';
+import { deleteEditableDemo, deleteMovementPreset, getDemoEditor, getEditableDemo, saveEditableDemo, saveMovementPreset } from './api.js';
 import { friendlyMessage } from './errors.js';
 import { prettyName } from './utils.js';
 
@@ -13,11 +13,25 @@ export function initDemoEditor(root, { onSave } = {}) {
   const add = form.querySelector('[data-demo-add]');
   const movementPicker = root.querySelector('[data-movement-picker]');
   const movementDelete = root.querySelector('[data-movement-delete]');
-  const movementEditor = root.querySelector('[data-movement-editor]');
+  const secciones = root.querySelectorAll('[data-editor-section]');
+  for (const boton of secciones) {
+    const panel = root.querySelector(`[data-editor-panel="${boton.dataset.editorSection}"]`);
+    panel.id = `${root.id}-${boton.dataset.editorSection}`;
+    boton.setAttribute('aria-controls', panel.id);
+    boton.addEventListener('click', () => {
+      for (const opcion of secciones) {
+        const activa = opcion === boton;
+        opcion.setAttribute('aria-pressed', String(activa));
+        document.getElementById(opcion.getAttribute('aria-controls')).hidden = !activa;
+      }
+      avisar();
+    });
+  }
   const movementForm = root.querySelector('[data-movement-form]');
   const movementFields = movementForm.querySelector('fieldset');
   const movementCommand = movementForm.elements.comando_movimiento;
   const reset = form.querySelector('[data-demo-reset]');
+  const eliminar = form.querySelector('[data-demo-delete]');
   const rows = form.querySelector('ol');
   const total = form.querySelector('output');
   const feedback = root.querySelector('[data-demo-feedback]');
@@ -149,6 +163,7 @@ export function initDemoEditor(root, { onSave } = {}) {
 
   function cargarFormulario(demo = null) {
     seleccion = demo;
+    eliminar.disabled = !demo;
     form.elements.nombre.value = demo?.nombre ?? '';
     form.elements.descripcion.value = demo?.descripcion ?? '';
     form.elements.activo.checked = demo?.activo ?? true;
@@ -204,7 +219,6 @@ export function initDemoEditor(root, { onSave } = {}) {
     if (configurar) configurar.hidden = true;
     demos = [];
     movimientos = [];
-    movementEditor.open = false;
     movementForm.reset();
     listarMovimientos();
     movementCommand.replaceChildren(...opcionesComandos());
@@ -275,6 +289,29 @@ export function initDemoEditor(root, { onSave } = {}) {
   reset.addEventListener('click', () => {
     cargarFormulario(seleccion);
     avisar();
+  });
+  eliminar.addEventListener('click', async () => {
+    if (!seleccion || guardando || !window.confirm(`¿Eliminar la demo «${seleccion.nombre}» y sus pasos?`)) return;
+    const id = seleccion.id_demo;
+    const solicitud = ++revision;
+    guardando = true;
+    bloquear(true);
+    try {
+      await deleteEditableDemo(unidad, id);
+      if (revision !== solicitud) return;
+      demos = demos.filter(demo => demo.id_demo !== id);
+      cargarFormulario();
+      pintarLista();
+      avisar('Demo eliminada.', 'ok');
+      onSave?.();
+    } catch (error) {
+      if (revision === solicitud) avisar(friendlyMessage(error), 'error');
+    } finally {
+      if (revision === solicitud) {
+        guardando = false;
+        bloquear(false);
+      }
+    }
   });
   form.addEventListener('submit', async (event) => {
     event.preventDefault();

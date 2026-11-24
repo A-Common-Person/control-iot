@@ -480,6 +480,8 @@ body[data-preview] .layout, body[data-preview] .monitor { height: auto; overflow
 
 .preview-control, .demo-editor { grid-column: 1 / -1; }
 .demo-editor[hidden] { display: none; }
+.editor-secciones { display: flex; flex-wrap: wrap; gap: .5rem; padding-block: .75rem; margin-bottom: .75rem; border-bottom: 1px solid var(--line); }
+.editor-secciones .admin-tab[aria-pressed="true"] { background: var(--yellow); color: #16191d; border-color: var(--yellow); }
 .demo-picker { display: block; margin-block: .75rem; }
 .demo-picker .form-select, #demo-unit { min-height: 42px; }
 .demo-editor .demo-active { display: flex; align-items: center; gap: .45rem; }

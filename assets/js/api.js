@@ -135,6 +135,7 @@ export const deleteMovementPreset = (unidad, id) => request(
   `${editorDemosPath(unidad)}/movimientos/${vid(id)}`, { method: 'DELETE' },
 );
 export const getEditableDemo = (unidad, demo) => request(`${editorDemosPath(unidad)}/${vid(demo)}`);
+export const deleteEditableDemo = (unidad, demo) => request(`${editorDemosPath(unidad)}/${vid(demo)}`, { method: 'DELETE' });
 export const saveEditableDemo = (unidad, demo, body) => (demo
   ? request(`${editorDemosPath(unidad)}/${vid(demo)}`, { method: 'PUT', body })
   : request(editorDemosPath(unidad), { method: 'POST', body }));
